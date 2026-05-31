@@ -1,80 +1,64 @@
-import axios from 'axios';
-
-const BASE_URL = 'http://localhost:5000/api/leads';
-
-// Token fetch karo fresh — pehle wala static tha (login ke baad change nahi hota tha)
-const getHeaders = () => ({
-  Authorization: `Bearer ${localStorage.getItem('token')}`,
-});
+import api from '../../api/axios.js';
 
 export const leadsApi = {
 
-  // GET ALL LEADS (filters: page, limit, project, status, assignedTo, search, startDate, endDate)
+  // GET ALL LEADS
+  // params: page, limit, project, status, assignedTo, search, startDate, endDate
   getAllLeads: async (params = {}) => {
-    const res = await axios.get(BASE_URL, { headers: getHeaders(), params });
+    const res = await api.get('/leads', { params });
     return res.data;
+    // Backend returns: { success, count, total, page, data: [...] }
+    // isliye index.jsx mein res.data use karo
   },
 
   // GET SINGLE LEAD
   getLeadById: async (id) => {
-    const res = await axios.get(`${BASE_URL}/${id}`, { headers: getHeaders() });
+    const res = await api.get(`/leads/${id}`);
     return res.data;
+    // Backend returns: { success, data: lead }
   },
 
-  // GET LEADS BY PROJECT SLUG (surya-ghar, group-solar, rwa-society, commercial, village, msme)
+  // GET LEADS BY PROJECT SLUG
   getLeadsByProject: async (slug, params = {}) => {
-    const res = await axios.get(`${BASE_URL}/project/${slug}`, {
-      headers: getHeaders(),
-      params,
-    });
+    const res = await api.get(`/leads/project/${slug}`, { params });
     return res.data;
   },
 
   // CREATE LEAD
   createLead: async (data) => {
-    const res = await axios.post(BASE_URL, data, { headers: getHeaders() });
+    const res = await api.post('/leads', data);
     return res.data;
   },
 
   // UPDATE LEAD
   updateLead: async (id, data) => {
-    const res = await axios.put(`${BASE_URL}/${id}`, data, { headers: getHeaders() });
+    const res = await api.put(`/leads/${id}`, data);
     return res.data;
   },
 
   // ASSIGN LEAD
   assignLead: async (id, assignedTo) => {
-    const res = await axios.post(
-      `${BASE_URL}/assign/${id}`,
-      { assignedTo },
-      { headers: getHeaders() }
-    );
+    const res = await api.post(`/leads/assign/${id}`, { assignedTo });
     return res.data;
   },
 
-  // DELETE LEAD
+  // DELETE LEAD (soft delete)
   deleteLead: async (id) => {
-    const res = await axios.delete(`${BASE_URL}/${id}`, { headers: getHeaders() });
+    const res = await api.delete(`/leads/${id}`);
     return res.data;
   },
 
-  // UPLOAD CSV / XLSX  (project slug optional)
+  // BULK UPLOAD CSV / XLSX
   uploadLeads: async (formData) => {
-    const res = await axios.post(`${BASE_URL}/upload`, formData, {
-      headers: {
-        ...getHeaders(),
-        'Content-Type': 'multipart/form-data',
-      },
+    const res = await api.post('/leads/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
     return res.data;
   },
 
-  // ANALYTICS (params: startDate, endDate)
+  // ANALYTICS
   getAnalytics: async (params = {}) => {
-    const res = await axios.get(`${BASE_URL}/analytics`, {
-      headers: getHeaders(),
-      params,
-    });
+    const res = await api.get('/leads/analytics', { params });
     return res.data;
   },
 };

@@ -15,10 +15,11 @@ export default function LeadsPage() {
   const fetchLeads = async (p = 1) => {
     setLoading(true);
     try {
-      const data = await leadsApi.getAllLeads({ page: p, limit: 20 });
-      setLeads(data.leads || []);
-      setTotalPages(data.pages || 1);
-      setTotal(data.total || 0);
+      const res = await leadsApi.getAllLeads({ page: p, limit: 20 });
+      // Backend returns: { success, count, total, page, data: [...] }
+      setLeads(res.data || []);
+      setTotal(res.total || 0);
+      setTotalPages(Math.ceil((res.total || 0) / 20));
     } catch (err) {
       console.error(err);
     } finally {
@@ -26,13 +27,10 @@ export default function LeadsPage() {
     }
   };
 
-  useEffect(() => {
-    fetchLeads(page);
-  }, [page]);
+  useEffect(() => { fetchLeads(page); }, [page]);
 
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">All Leads</h1>
@@ -54,37 +52,26 @@ export default function LeadsPage() {
         </div>
       </div>
 
-      {/* Table */}
       {loading ? (
         <div className="text-center py-20 text-gray-400">Loading leads...</div>
       ) : (
         <LeadTables leads={leads} onRefresh={() => fetchLeads(page)} />
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-6">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50"
-          >
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50">
             Prev
           </button>
-          <span className="text-sm text-gray-600">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50"
-          >
+          <span className="text-sm text-gray-600">Page {page} of {totalPages}</span>
+          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50">
             Next
           </button>
         </div>
       )}
 
-      {/* Create Modal */}
       {showCreate && (
         <CreateLeadModal
           onClose={() => setShowCreate(false)}

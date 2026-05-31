@@ -8,6 +8,7 @@ import {
   getLeadsByProject,
   assignLead,
   uploadLeads,
+  upload,
   getAnalytics,
 } from '../../controllers/marketing/leadController.js';
 import { protect } from '../../middleware/auth.js';
@@ -19,7 +20,9 @@ router.use(protect);
 router.get('/analytics', getAnalytics);
 router.get('/project/:slug', getLeadsByProject);
 router.post('/assign/:id', assignLead);
-router.post('/upload', uploadLeads);
+
+// Bulk upload — multer middleware pehle, phir controller
+router.post('/upload', upload.single('file'), uploadLeads);
 
 router.route('/')
   .get(getAllLeads)

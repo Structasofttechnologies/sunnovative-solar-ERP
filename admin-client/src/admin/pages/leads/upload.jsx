@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle, Download, X } from 'lucide-react';
 import { leadsApi } from '../../../services/leads/leadsApi.js';
+import LeadTables from './components/tables/LeadTables.jsx';
 
 const PROJECTS = [
   { value: 'surya-ghar', label: 'Surya Ghar Yojana' },
@@ -16,15 +17,19 @@ export default function UploadPage() {
   const [file, setFile] = useState(null);
   const [project, setProject] = useState('general');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null); // { success, message, total }
+  const [result, setResult] = useState(null);
   const [dragOver, setDragOver] = useState(false);
+
+  // Uploaded leads table
+  const [uploadedLeads, setUploadedLeads] = useState([]);
+  const [fetchingLeads, setFetchingLeads] = useState(false);
+
   const inputRef = useRef();
 
   const handleFile = (f) => {
     setResult(null);
-    const allowed = ['.csv', '.xlsx', '.xls'];
     const ext = '.' + f.name.split('.').pop().toLowerCase();
-    if (!allowed.includes(ext)) {
+    if (!['.csv', '.xlsx', '.xls'].includes(ext)) {
       setResult({ success: false, message: 'Only CSV, XLSX, XLS files allowed' });
       return;
     }
@@ -38,10 +43,24 @@ export default function UploadPage() {
     if (f) handleFile(f);
   };
 
+  // After upload — fetch leads of that project to show in table
+  const fetchUploadedLeads = async (projectSlug) => {
+    setFetchingLeads(true);
+    try {
+      const res = await leadsApi.getAllLeads({ project: projectSlug, limit: 100 });
+      setUploadedLeads(res.data || []);
+    } catch (err) {
+      console.error('fetch leads error:', err);
+    } finally {
+      setFetchingLeads(false);
+    }
+  };
+
   const handleUpload = async () => {
     if (!file) return;
     setLoading(true);
     setResult(null);
+    setUploadedLeads([]);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -49,6 +68,8 @@ export default function UploadPage() {
       const res = await leadsApi.uploadLeads(formData);
       setResult({ success: true, message: res.message, total: res.total });
       setFile(null);
+      // Fetch leads of selected project to show in table
+      await fetchUploadedLeads(project);
     } catch (err) {
       setResult({
         success: false,
@@ -59,24 +80,56 @@ export default function UploadPage() {
     }
   };
 
-  // Download sample CSV
+  // Template download — backend ke actual fields
+  // Backend (leadController.js) reads: name, phone/mobile, email, city, state,
+  // pincode, address, systemCapacity/kw, billAmount, notes
   const downloadTemplate = () => {
-    const csv = 'name,phone,email,state,city,pincode,address,notes,systemCapacity\nRamesh Kumar,9876543210,ramesh@email.com,UP,Agra,282001,Near Bus Stand,Interested in 5kW,5\n';
+    const headers = [
+      'name',
+      'phone',
+      'email',
+      'city',
+      'state',
+      'pincode',
+      'address',
+      'systemCapacity',
+      'billAmount',
+      'notes',
+    ].join(',');
+
+    // Sirf ek example row — actual data nahi
+    const exampleRow = [
+      'Ramesh Kumar',
+      '9876543210',
+      'ramesh@email.com',
+      'Agra',
+      'Uttar Pradesh',
+      '282001',
+      'Near Bus Stand Gandhi Nagar',
+      '5',
+      '3000',
+      'Interested in rooftop solar',
+    ].join(',');
+
+    const csv = headers + '\n' + exampleRow + '\n';
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'leads_template.csv';
+    a.download = 'leads_upload_template.csv';
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="p-6 max-w-2xl">
+    <div className="p-6 max-w-3xl">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Bulk Upload Leads</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Upload CSV or Excel file to add multiple leads at once</p>
+          <p className="text-sm text-gray-500 mt-0.5">
+            CSV ya Excel file upload karo — ek saath kai leads add ho jaayengi
+          </p>
         </div>
         <button
           onClick={downloadTemplate}
@@ -88,7 +141,7 @@ export default function UploadPage() {
 
       {/* Project Select */}
       <div className="mb-5">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Select Project</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Project Select karo</label>
         <select
           value={project}
           onChange={(e) => setProject(e.target.value)}
@@ -107,12 +160,14 @@ export default function UploadPage() {
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
         className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition ${
-          dragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-300 hover:bg-gray-50'
+          dragOver
+            ? 'border-blue-400 bg-blue-50'
+            : 'border-gray-300 hover:border-blue-300 hover:bg-gray-50'
         }`}
       >
         <Upload size={32} className="mx-auto text-gray-400 mb-3" />
-        <p className="text-gray-600 font-medium">Drag & drop file here or click to browse</p>
-        <p className="text-xs text-gray-400 mt-1">Supports: CSV, XLSX, XLS — max 10MB</p>
+        <p className="text-gray-600 font-medium">File yahan drop karo ya click karke browse karo</p>
+        <p className="text-xs text-gray-400 mt-1">CSV, XLSX, XLS — max 10MB</p>
         <input
           ref={inputRef}
           type="file"
@@ -139,7 +194,9 @@ export default function UploadPage() {
       {/* Result Banner */}
       {result && (
         <div className={`mt-4 flex items-start gap-3 rounded-xl px-4 py-3 ${
-          result.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+          result.success
+            ? 'bg-green-50 border border-green-200'
+            : 'bg-red-50 border border-red-200'
         }`}>
           {result.success
             ? <CheckCircle size={18} className="text-green-600 shrink-0 mt-0.5" />
@@ -148,8 +205,10 @@ export default function UploadPage() {
             <p className={`text-sm font-medium ${result.success ? 'text-green-700' : 'text-red-600'}`}>
               {result.message}
             </p>
-            {result.total && (
-              <p className="text-xs text-green-600 mt-0.5">{result.total} leads added to database</p>
+            {result.total > 0 && (
+              <p className="text-xs text-green-600 mt-0.5">
+                {result.total} leads database mein add ho gayi
+              </p>
             )}
           </div>
         </div>
@@ -161,39 +220,65 @@ export default function UploadPage() {
         disabled={!file || loading}
         className="mt-5 w-full bg-blue-600 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
-        {loading ? (
-          <><span className="animate-spin">⏳</span> Uploading...</>
-        ) : (
-          <><Upload size={15} /> Upload Leads</>
-        )}
+        {loading
+          ? <><span className="animate-spin inline-block">⏳</span> Uploading...</>
+          : <><Upload size={15} /> Upload Leads</>
+        }
       </button>
 
-      {/* CSV Format Guide */}
+      {/* ── Uploaded Leads Table ── */}
+      {fetchingLeads && (
+        <div className="mt-8 text-center text-gray-400 text-sm">Loading uploaded leads...</div>
+      )}
+
+      {!fetchingLeads && uploadedLeads.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-gray-700">
+              Uploaded Leads — {uploadedLeads.length} records
+            </h2>
+          </div>
+          <LeadTables
+            leads={uploadedLeads}
+            onRefresh={() => fetchUploadedLeads(project)}
+          />
+        </div>
+      )}
+
+      {/* ── CSV Format Guide ── */}
       <div className="mt-8 bg-gray-50 rounded-xl p-4 border border-gray-200">
-        <p className="text-sm font-medium text-gray-700 mb-2">CSV/Excel Format</p>
-        <p className="text-xs text-gray-500 mb-2">
-          Required: <span className="text-red-500 font-medium">phone</span> — All other columns optional
+        <p className="text-sm font-semibold text-gray-700 mb-1">CSV / Excel Format</p>
+        <p className="text-xs text-gray-500 mb-3">
+          <span className="text-red-500 font-medium">phone</span> — required hai, baaki sab optional
         </p>
         <div className="overflow-x-auto">
-          <table className="text-xs text-gray-600 w-full">
+          <table className="text-xs text-gray-600 w-full border-collapse">
             <thead>
               <tr className="bg-gray-200">
-                {['name','phone','email','state','city','pincode','address','notes','systemCapacity'].map(c => (
-                  <th key={c} className={`px-2 py-1 text-left font-medium ${c === 'phone' ? 'text-red-600' : ''}`}>{c}</th>
+                {['name','phone *','email','city','state','pincode','address','systemCapacity','billAmount','notes'].map((c) => (
+                  <th
+                    key={c}
+                    className={`px-2 py-1.5 text-left font-semibold border border-gray-300 ${
+                      c === 'phone *' ? 'text-red-600' : ''
+                    }`}
+                  >
+                    {c}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               <tr className="bg-white">
-                <td className="px-2 py-1">Ramesh</td>
-                <td className="px-2 py-1 text-red-600">9876543210</td>
-                <td className="px-2 py-1">r@mail.com</td>
-                <td className="px-2 py-1">UP</td>
-                <td className="px-2 py-1">Agra</td>
-                <td className="px-2 py-1">282001</td>
-                <td className="px-2 py-1">Near bus</td>
-                <td className="px-2 py-1">5kW interest</td>
-                <td className="px-2 py-1">5</td>
+                <td className="px-2 py-1 border border-gray-200">Ramesh Kumar</td>
+                <td className="px-2 py-1 border border-gray-200 text-red-600 font-medium">9876543210</td>
+                <td className="px-2 py-1 border border-gray-200">r@mail.com</td>
+                <td className="px-2 py-1 border border-gray-200">Agra</td>
+                <td className="px-2 py-1 border border-gray-200">UP</td>
+                <td className="px-2 py-1 border border-gray-200">282001</td>
+                <td className="px-2 py-1 border border-gray-200">Near Bus Stand</td>
+                <td className="px-2 py-1 border border-gray-200">5</td>
+                <td className="px-2 py-1 border border-gray-200">3000</td>
+                <td className="px-2 py-1 border border-gray-200">Interested</td>
               </tr>
             </tbody>
           </table>

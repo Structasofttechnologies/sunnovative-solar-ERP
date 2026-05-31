@@ -212,6 +212,16 @@ projectWiseLeads: false,
 
       icon: FileText,
     },
+    {
+  name: 'My Leads',
+  href: '/admin/leads/my-leads',
+  icon: UserCheck,
+},
+{
+  name: 'Assigned Leads',
+  href: '/admin/leads/assigned',
+  icon: UserCheck,
+},
 
     {
       id: 'projectWiseLeads',

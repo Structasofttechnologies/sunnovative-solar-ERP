@@ -1,25 +1,29 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, Mail, MapPin, Zap, Calendar, User, UserCheck } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, Zap, Calendar, User, UserCheck, IndianRupee } from 'lucide-react';
 import { leadsApi } from '../../../services/leads/leadsApi.js';
 import AssignedLeadModal from './components/modals/AssignedLeadModal.jsx';
 
+const STATUS_OPTIONS = ['New', 'Called', 'Interested', 'Not Interested', 'Follow Up', 'Converted', 'Junk'];
+
 const STATUS_COLORS = {
-  new: 'bg-blue-100 text-blue-700',
-  contacted: 'bg-yellow-100 text-yellow-700',
-  qualified: 'bg-purple-100 text-purple-700',
-  converted: 'bg-green-100 text-green-700',
-  lost: 'bg-red-100 text-red-700',
+  'New':            'bg-blue-100 text-blue-700',
+  'Called':         'bg-yellow-100 text-yellow-700',
+  'Interested':     'bg-green-100 text-green-700',
+  'Not Interested': 'bg-red-100 text-red-700',
+  'Follow Up':      'bg-purple-100 text-purple-700',
+  'Converted':      'bg-emerald-100 text-emerald-700',
+  'Junk':           'bg-gray-100 text-gray-500',
 };
 
 const PROJECT_LABELS = {
-  'surya-ghar': 'Surya Ghar Yojana',
+  'surya-ghar':  'Surya Ghar Yojana',
   'group-solar': 'Group Solar',
   'rwa-society': 'RWA Society Solar',
-  commercial: 'Commercial SolarKits',
-  village: 'Village Campaigns',
-  msme: 'MSME Solar',
-  general: 'General',
+  'commercial':  'Commercial SolarKits',
+  'village':     'Village Campaigns',
+  'msme':        'MSME Solar',
+  'general':     'General',
 };
 
 export default function LeadDetails() {
@@ -34,9 +38,11 @@ export default function LeadDetails() {
   const fetchLead = async () => {
     setLoading(true);
     try {
-      const data = await leadsApi.getLeadById(id);
-      setLead(data.lead);
-      setStatus(data.lead.status);
+      const res = await leadsApi.getLeadById(id);
+      // Backend returns { success, data: lead }
+      const l = res.data || res.lead;
+      setLead(l);
+      setStatus(l?.status || 'New');
     } catch (err) {
       console.error(err);
     } finally {
@@ -51,7 +57,7 @@ export default function LeadDetails() {
     try {
       await leadsApi.updateLead(id, { status });
       fetchLead();
-    } catch (err) {
+    } catch {
       alert('Status update failed');
     } finally {
       setSavingStatus(false);
@@ -59,15 +65,12 @@ export default function LeadDetails() {
   };
 
   if (loading) return <div className="p-6 text-gray-400">Loading lead details...</div>;
-  if (!lead) return <div className="p-6 text-red-500">Lead not found</div>;
+  if (!lead)   return <div className="p-6 text-red-500">Lead not found</div>;
 
   return (
     <div className="p-6 max-w-2xl">
-      {/* Back */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-5"
-      >
+      <button onClick={() => navigate(-1)}
+        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-5">
         <ArrowLeft size={15} /> Back
       </button>
 
@@ -75,93 +78,64 @@ export default function LeadDetails() {
 
       {/* Badges */}
       <div className="flex flex-wrap gap-2 mb-6">
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${STATUS_COLORS[lead.status]}`}>
-          {lead.status}
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[lead.status] || 'bg-gray-100 text-gray-600'}`}>
+          {lead.status || 'New'}
         </span>
         <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
-          {PROJECT_LABELS[lead.project] || lead.project}
-        </span>
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 capitalize">
-          {lead.source?.replace('_', ' ')}
+          {PROJECT_LABELS[lead.solarType] || lead.solarType || 'General'}
         </span>
       </div>
 
       {/* Info Card */}
       <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-5 space-y-3 text-sm">
-        <InfoRow icon={<Phone size={15} />} label="Phone" value={lead.phone} />
-        {lead.email && <InfoRow icon={<Mail size={15} />} label="Email" value={lead.email} />}
-        {(lead.city || lead.state) && (
-          <InfoRow
-            icon={<MapPin size={15} />}
-            label="Location"
-            value={[lead.city, lead.state, lead.pincode].filter(Boolean).join(', ')}
-          />
-        )}
-        {lead.address && <InfoRow icon={<MapPin size={15} />} label="Address" value={lead.address} />}
-        {lead.systemCapacity && (
-          <InfoRow icon={<Zap size={15} />} label="Capacity" value={`${lead.systemCapacity} kW`} />
-        )}
-        <InfoRow
-          icon={<Calendar size={15} />}
-          label="Created"
-          value={new Date(lead.createdAt).toLocaleString('en-IN')}
-        />
-        <InfoRow
-          icon={<User size={15} />}
-          label="Created By"
-          value={lead.createdBy?.name || 'System'}
-        />
-        <InfoRow
-          icon={<UserCheck size={15} />}
-          label="Assigned To"
-          value={lead.assignedTo ? (lead.assignedTo.name || 'Assigned') : 'Unassigned'}
-        />
-        {lead.assignedAt && (
-          <InfoRow
-            icon={<Calendar size={15} />}
-            label="Assigned At"
-            value={new Date(lead.assignedAt).toLocaleString('en-IN')}
-          />
-        )}
-        {lead.notes && (
+        <InfoRow icon={<Phone size={15}/>}       label="Mobile"    value={lead.mobile || lead.phone || '—'} />
+        {lead.whatsapp && lead.whatsapp !== lead.mobile &&
+          <InfoRow icon={<Phone size={15}/>}     label="WhatsApp"  value={lead.whatsapp} />}
+        {lead.email &&
+          <InfoRow icon={<Mail size={15}/>}      label="Email"     value={lead.email} />}
+        {(lead.city || lead.state) &&
+          <InfoRow icon={<MapPin size={15}/>}    label="Location"
+            value={[lead.city?.name || lead.city, lead.state?.name || lead.state, lead.pincode].filter(Boolean).join(', ')} />}
+        {lead.address &&
+          <InfoRow icon={<MapPin size={15}/>}    label="Address"   value={lead.address} />}
+        {lead.kw &&
+          <InfoRow icon={<Zap size={15}/>}       label="Capacity"  value={`${lead.kw} kW`} />}
+        {lead.billAmount > 0 &&
+          <InfoRow icon={<IndianRupee size={15}/>} label="Bill Amt" value={`₹${lead.billAmount}`} />}
+        <InfoRow icon={<Calendar size={15}/>}    label="Created"
+          value={new Date(lead.createdAt).toLocaleString('en-IN')} />
+        <InfoRow icon={<User size={15}/>}        label="Dealer"
+          value={lead.dealer?.name || 'System'} />
+        <InfoRow icon={<UserCheck size={15}/>}   label="Assigned"
+          value={lead.assignedTo?.name || 'Unassigned'} />
+        {lead.notes &&
           <div className="bg-gray-50 rounded-xl p-3 mt-2">
             <p className="text-xs font-medium text-gray-500 mb-1">Notes</p>
             <p className="text-gray-700">{lead.notes}</p>
           </div>
-        )}
+        }
       </div>
 
       {/* Update Status */}
       <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-5">
-        <p className="text-sm font-semibold text-gray-700 mb-3">Update Status</p>
+        <p className="text-sm font-semibold text-gray-700 mb-3">Status Update karo</p>
         <div className="flex gap-2">
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          >
-            <option value="new">New</option>
-            <option value="contacted">Contacted</option>
-            <option value="qualified">Qualified</option>
-            <option value="converted">Converted</option>
-            <option value="lost">Lost</option>
+          <select value={status} onChange={e => setStatus(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+            {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-          <button
-            onClick={handleStatusSave}
+          <button onClick={handleStatusSave}
             disabled={savingStatus || status === lead.status}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition"
-          >
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition">
             {savingStatus ? 'Saving...' : 'Save'}
           </button>
         </div>
       </div>
 
-      {/* Assign Button */}
-      <button
-        onClick={() => setShowAssign(true)}
-        className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white py-2.5 rounded-xl text-sm hover:bg-gray-700 transition"
-      >
-        <UserCheck size={15} /> Assign to Team Member
+      {/* Assign */}
+      <button onClick={() => setShowAssign(true)}
+        className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white py-2.5 rounded-xl text-sm hover:bg-gray-700 transition">
+        <UserCheck size={15}/> Assign to Team Member
       </button>
 
       {showAssign && (
