@@ -103,7 +103,7 @@ export default function AssignedLeadModal({ lead, onClose, onSuccess }) {
           {fetching ? (
             <div className="py-6 text-center text-sm text-gray-400">Loading team members...</div>
           ) : filtered.length === 0 ? (
-            <div className="py-6 text-center text-sm text-gray-400">Koi member nahi mila</div>
+            <div className="py-6 text-center text-sm text-gray-400">No member found</div>
           ) : (
             filtered.map((u) => (
               <div

@@ -591,7 +591,7 @@ function App() {
               <Route
                 path="reports/revenue-by-cp-types"
                 element={<AdminRevenueByCPTypesReport />}
-              />
+              />     
               <Route path="reports/cluster" element={<AdminClusterReport />} />
               <Route path="reports/district" element={<AdminDistrictReport />} />
               <Route path="reports/city" element={<AdminCityReport />} />

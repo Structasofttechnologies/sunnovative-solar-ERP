@@ -71,7 +71,7 @@ export default function FormBuilderEditor() {
       const sorted = [...(data.fields || [])].sort((a, b) => a.order - b.order);
       setFields(sorted.map((f) => ({ ...f, _tempId: f._id || Math.random().toString(36).slice(2) })));
     } catch {
-      toast.error('Form load karne mein error');
+      toast.error('error in loading the form data');
     } finally {
       setLoading(false);
     }
@@ -172,7 +172,7 @@ export default function FormBuilderEditor() {
         {/* Top bar */}
         <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
           <button
-            onClick={() => navigate('/settings/forms')}
+            onClick={() => navigate('/admin/settings/forms')}
             className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"
           >
             <ArrowLeft size={17} />
@@ -182,7 +182,7 @@ export default function FormBuilderEditor() {
             <p className="text-xs text-gray-400 font-mono">{form.projectSlug}</p>
           </div>
           <button
-            onClick={() => navigate(`/settings/forms/${id}/preview`)}
+            onClick={() => navigate(`/admin/settings/forms/${id}/preview`)}
             className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500"
             title="Preview"
           >
@@ -194,8 +194,8 @@ export default function FormBuilderEditor() {
         <div className="flex-1 overflow-y-auto py-3 px-3 space-y-2">
           {fields.length === 0 && (
             <div className="text-center text-gray-400 py-8 text-sm">
-              Koi field nahi hai. <br />
-              Neeche + button se add karein
+              there is no field added. <br />
+              add from below + button.
             </div>
           )}
           {fields.map((field, idx) => {
@@ -256,7 +256,7 @@ export default function FormBuilderEditor() {
             className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-orange-300 text-orange-500 hover:bg-orange-50 rounded-xl py-2 text-sm font-medium transition"
           >
             <Plus size={15} />
-            Field Add Karein
+            Add Field
           </button>
           <button
             onClick={handleSave}
@@ -274,8 +274,8 @@ export default function FormBuilderEditor() {
         {activeField === null ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-400">
             <Settings2 size={48} className="mb-4 opacity-30" />
-            <p className="text-lg font-medium">Koi field select karein</p>
-            <p className="text-sm">Ya naya field add karein</p>
+            <p className="text-lg font-medium">select any field</p>
+            <p className="text-sm">or add a new field</p>
           </div>
         ) : (
           <div className="max-w-xl mx-auto space-y-5">
@@ -337,7 +337,7 @@ export default function FormBuilderEditor() {
                     onChange={(e) => updateField(activeFieldIdx, { fieldName: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
                   />
                   <p className="text-[10px] text-gray-400 mt-0.5">
-                    Submitted data mein yahi key use hogi
+                    this key is used in submitted data and should be unique. It will be auto-generated from label but you can edit it.
                   </p>
                 </div>
 
@@ -349,7 +349,7 @@ export default function FormBuilderEditor() {
                     </label>
                     <input
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-                      placeholder="e.g. Apna naam darj karein"
+                      placeholder="e.g. register your name here "
                       value={activeField.placeholder}
                       onChange={(e) => updateField(activeFieldIdx, { placeholder: e.target.value })}
                     />
@@ -360,7 +360,7 @@ export default function FormBuilderEditor() {
                 <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
                   <div>
                     <p className="text-sm font-medium text-gray-700">Required Field</p>
-                    <p className="text-xs text-gray-400">User ke liye mandatory</p>
+                    <p className="text-xs text-gray-400"> mandatory for user </p>
                   </div>
                   <button
                     onClick={() => updateField(activeFieldIdx, { isRequired: !activeField.isRequired })}
@@ -380,7 +380,7 @@ export default function FormBuilderEditor() {
                 <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
                   <div>
                     <p className="text-sm font-medium text-gray-700">Active</p>
-                    <p className="text-xs text-gray-400">Form mein dikhega ya nahi</p>
+                    <p className="text-xs text-gray-400">may senn</p>
                   </div>
                   <button
                     onClick={() => updateField(activeFieldIdx, { isActive: !activeField.isActive })}
@@ -508,7 +508,7 @@ export default function FormBuilderEditor() {
               className="w-full flex items-center justify-center gap-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-xl py-2.5 text-sm font-medium transition"
             >
               <Trash2 size={14} />
-              Is Field Ko Remove Karein
+              Remove this field
             </button>
           </div>
         )}

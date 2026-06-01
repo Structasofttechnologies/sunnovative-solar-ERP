@@ -218,7 +218,7 @@ export const uploadLeads = async (req, res, next) => {
     const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
     if (!rows.length) {
-      return res.status(400).json({ success: false, message: 'File mein koi data nahi hai' });
+      return res.status(400).json({ success: false, message: 'No data found in the file' });
     }
 
     const leads = [];
@@ -251,14 +251,14 @@ export const uploadLeads = async (req, res, next) => {
     }
 
     if (!leads.length) {
-      return res.status(400).json({ success: false, message: 'Koi valid lead nahi mili', errors });
+      return res.status(400).json({ success: false, message: 'No valid leads found', errors });
     }
 
     const inserted = await Lead.insertMany(leads, { ordered: false });
 
     res.json({
       success: true,
-      message: `${inserted.length} leads successfully upload ho gayi`,
+      message: `${inserted.length} leads successfully uploaded`,
       total: inserted.length,
       errors: errors.length ? errors : undefined,
     });

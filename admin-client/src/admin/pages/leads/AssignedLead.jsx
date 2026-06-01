@@ -73,7 +73,7 @@ export default function AssignedLeads() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Assigned Leads</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Har employee ko kitni leads assign hain</p>
+          <p className="text-sm text-gray-500 mt-0.5">Here you can see all assigned leads to each employee</p>
         </div>
         <button onClick={fetchLeads}
           className="flex items-center gap-1 text-sm text-gray-500 border border-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-50">
@@ -115,7 +115,7 @@ export default function AssignedLeads() {
           onChange={(e) => setSelectedEmployee(e.target.value)}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
-          <option value="">Sab employees ki leads</option>
+          <option value="">All employees' leads</option>
           {employees.map((e) => (
             <option key={e._id} value={e._id}>{e.name} ({e.phone || e.email})</option>
           ))}
@@ -135,8 +135,8 @@ export default function AssignedLeads() {
       ) : leads.length === 0 ? (
         <div className="text-center py-20 text-gray-400">
           <UserCheck size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="text-lg font-medium">Koi assigned lead nahi mili</p>
-          <p className="text-sm mt-1">Lead detail page se assign karo</p>
+          <p className="text-lg font-medium">No assigned leads found</p>
+          <p className="text-sm mt-1">assign from the leads page</p>
         </div>
       ) : (
         <LeadTables leads={leads} onRefresh={fetchLeads} />

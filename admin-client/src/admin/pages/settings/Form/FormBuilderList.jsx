@@ -29,7 +29,7 @@ export default function FormBuilderList() {
       const res = await formBuilderAPI.getAllForms();
       setForms(res.data?.data || []);
     } catch (err) {
-      toast.error('Forms load karne mein error aaya');
+      toast.error('Error in loading forms');
     } finally {
       setLoading(false);
     }
@@ -69,7 +69,7 @@ export default function FormBuilderList() {
       toast.success('Form created!');
       setShowCreateModal(false);
       setNewForm({ projectName: '', description: '' });
-      navigate(`/settings/forms/${res.data.data._id}/edit`);
+      navigate(`/admin/settings/forms/${res.data.data._id}/edit`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Create failed');
     } finally {
@@ -93,7 +93,7 @@ export default function FormBuilderList() {
             Dynamic Form Builder
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Har project ke liye alag form configure karein — bina coding ke
+            configure diffrent forms for different projects and collect data in your own database.
           </p>
         </div>
         <button
@@ -110,7 +110,7 @@ export default function FormBuilderList() {
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-          placeholder="Form ya project name se search karein..."
+          placeholder="Form or project name search here..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -122,7 +122,7 @@ export default function FormBuilderList() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <FileText size={40} className="mx-auto mb-3 opacity-40" />
-          <p>Koi form nahi mila</p>
+          <p>no forms found</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -168,14 +168,14 @@ export default function FormBuilderList() {
                   <td className="px-5 py-3">
                     <div className="flex items-center justify-center gap-2">
                       <button
-                        onClick={() => navigate(`/settings/forms/${form._id}/preview`)}
+                        onClick={() => navigate(`/admin/settings/forms/${form._id}/preview`)}
                         title="Preview form"
                         className="p-1.5 rounded-lg text-gray-500 hover:bg-blue-50 hover:text-blue-600 transition"
                       >
                         <Eye size={15} />
                       </button>
                       <button
-                        onClick={() => navigate(`/settings/forms/${form._id}/edit`)}
+                        onClick={() => navigate(`/admin/settings/forms/${form._id}/edit`)}
                         title="Edit fields"
                         className="p-1.5 rounded-lg text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition"
                       >
@@ -203,7 +203,7 @@ export default function FormBuilderList() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
             <h2 className="text-lg font-bold text-gray-800 mb-1">Naya Form Create Karein</h2>
             <p className="text-sm text-gray-500 mb-4">
-              Project name se slug automatically generate hoga
+               slug automatically generated from the project name, but you can edit it later in form settings. 
             </p>
             <form onSubmit={handleCreateForm} className="space-y-4">
               <div>
@@ -233,7 +233,7 @@ export default function FormBuilderList() {
                 <textarea
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none"
                   rows={2}
-                  placeholder="Form ki brief description..."
+                  placeholder="Form's brief description..."
                   value={newForm.description}
                   onChange={(e) => setNewForm({ ...newForm, description: e.target.value })}
                 />

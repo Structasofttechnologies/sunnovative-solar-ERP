@@ -75,8 +75,8 @@ export default function ProjectWise() {
       ) : leads.length === 0 ? (
         <div className="text-center py-20 text-gray-400">
           <span className="text-5xl">{meta.emoji}</span>
-          <p className="text-lg font-medium mt-3">{meta.label} ke liye koi lead nahi mili</p>
-          <p className="text-sm mt-1">Add Lead mein <strong>"{meta.label}"</strong> select karke lead add karo</p>
+          <p className="text-lg font-medium mt-3">No leads found for {meta.label}</p>
+          <p className="text-sm mt-1">Add a lead and select <strong>"{meta.label}"</strong> to assign it</p>
         </div>
       ) : (
         <LeadTables leads={leads} onRefresh={fetchLeads} />

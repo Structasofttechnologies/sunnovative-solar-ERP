@@ -19,7 +19,7 @@ export default function FormBuilderPreview() {
         setSlug(res.data?.data?.projectSlug);
         setProjectName(res.data?.data?.projectName);
       })
-      .catch(() => toast.error('Form load nahi hua'));
+      .catch(() => toast.error('error in loading the form data'));
   }, [id]);
 
   return (
@@ -27,14 +27,14 @@ export default function FormBuilderPreview() {
       {/* Top bar */}
       <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 sticky top-0 z-10 shadow-sm">
         <button
-          onClick={() => navigate(`/settings/forms/${id}/edit`)}
+          onClick={() => navigate(`/admin/settings/forms/${id}/edit`)}
           className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"
         >
           <ArrowLeft size={17} />
         </button>
         <div className="flex-1">
           <h2 className="font-bold text-gray-800 text-sm">Preview: {projectName}</h2>
-          <p className="text-xs text-gray-400">Yahan form exactly waise dikhega jaise users ko dikhega</p>
+          <p className="text-xs text-gray-400">here you can see how the form will look for users</p>
         </div>
 
         {/* View toggle */}
@@ -58,7 +58,7 @@ export default function FormBuilderPreview() {
         </div>
 
         <button
-          onClick={() => navigate(`/settings/forms/${id}/edit`)}
+          onClick={() => navigate(`/admin/settings/forms/${id}/edit`)}
           className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
         >
           <Edit2 size={14} /> Edit Fields

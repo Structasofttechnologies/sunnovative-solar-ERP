@@ -14,63 +14,70 @@ import {
   getFormSubmissions,
   updateSubmissionStatus,
 } from '../../controllers/Form/formController.js';
-import { protect, authorize } from '../../middleware/auth.js';
+import { protect } from '../../middleware/auth.js';
 
 const router = express.Router();
+
+// ─────────────────────────────────────────────────
+// IMPORTANT: Specific/static routes PEHLE define karein
+// Express upar se neeche match karta hai, isliye
+// /public/:slug aur /submissions/:slug ko /:id se PEHLE
+// rakhna zaroori hai, warna Express inhe /:id samajhega
+// ─────────────────────────────────────────────────
 
 // ─────────────────────────────────────
 // PUBLIC routes (no auth needed)
 // ─────────────────────────────────────
 
-// GET /api/forms/public/:slug  → fetch form schema for rendering on frontend
+// GET  /api/forms/public/:slug  → form schema fetch karo frontend ke liye
 router.get('/public/:slug', getFormBySlug);
 
-// POST /api/forms/public/:slug/submit → submit form data
+// POST /api/forms/public/:slug/submit → form submit karo
 router.post('/public/:slug/submit', submitForm);
 
 // ─────────────────────────────────────
-// ADMIN routes (auth required)
+// Submissions routes — /:id se PEHLE (warna conflict)
 // ─────────────────────────────────────
 
-// GET  /api/forms                → list all forms
+// GET /api/forms/submissions/:slug → form ki saari submissions
+router.get('/submissions/:slug', protect, getFormSubmissions);
+
+// PUT /api/forms/submissions/:submissionId/status → submission status update
+router.put('/submissions/:submissionId/status', protect, updateSubmissionStatus);
+
+// ─────────────────────────────────────
+// ADMIN: Form CRUD
+// ─────────────────────────────────────
+
+// GET  /api/forms       → sabhi forms ki list
 router.get('/', protect, getAllForms);
 
-// POST /api/forms                → create a new form
+// POST /api/forms       → naya form banao
 router.post('/', protect, createForm);
 
-// GET  /api/forms/:id            → get form with fields
+// GET  /api/forms/:id   → form with all fields
 router.get('/:id', protect, getFormById);
 
-// PUT  /api/forms/:id            → update form meta
+// PUT  /api/forms/:id   → form meta update (name, description, isActive)
 router.put('/:id', protect, updateForm);
 
-// DELETE /api/forms/:id          → delete form
+// DELETE /api/forms/:id → form delete karo
 router.delete('/:id', protect, deleteForm);
 
 // ─────────────────────────────────────
-// Field management endpoints
+// Field management
 // ─────────────────────────────────────
 
-// PUT  /api/forms/:id/fields     → bulk replace all fields
+// PUT  /api/forms/:id/fields                → bulk sabhi fields replace karo
 router.put('/:id/fields', protect, updateFormFields);
 
-// POST /api/forms/:id/fields     → add a single field
+// POST /api/forms/:id/fields                → ek field add karo
 router.post('/:id/fields', protect, addField);
 
-// PUT  /api/forms/:id/fields/:fieldId  → update a single field
+// PUT  /api/forms/:id/fields/:fieldId       → ek field update karo
 router.put('/:id/fields/:fieldId', protect, updateField);
 
-// DELETE /api/forms/:id/fields/:fieldId → remove a single field
+// DELETE /api/forms/:id/fields/:fieldId     → ek field remove karo
 router.delete('/:id/fields/:fieldId', protect, removeField);
-
-// ─────────────────────────────────────
-// Submissions
-// ─────────────────────────────────────
-
-// GET /api/forms/submissions/:slug       → get submissions for a form
-router.get('/submissions/:slug', protect, getFormSubmissions);
-
-// PUT /api/forms/submissions/:submissionId/status → update submission status
-router.put('/submissions/:submissionId/status', protect, updateSubmissionStatus);
 
 export default router;

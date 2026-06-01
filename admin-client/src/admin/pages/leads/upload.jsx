@@ -128,7 +128,7 @@ export default function UploadPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Bulk Upload Leads</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            CSV ya Excel file upload karo — ek saath kai leads add ho jaayengi
+            Either upload a CSV or Excel file — all leads will be added at once
           </p>
         </div>
         <button
@@ -141,7 +141,7 @@ export default function UploadPage() {
 
       {/* Project Select */}
       <div className="mb-5">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Project Select karo</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Select Project</label>
         <select
           value={project}
           onChange={(e) => setProject(e.target.value)}
@@ -166,7 +166,7 @@ export default function UploadPage() {
         }`}
       >
         <Upload size={32} className="mx-auto text-gray-400 mb-3" />
-        <p className="text-gray-600 font-medium">File yahan drop karo ya click karke browse karo</p>
+        <p className="text-gray-600 font-medium">Either drop your file or browse your file from your device</p>
         <p className="text-xs text-gray-400 mt-1">CSV, XLSX, XLS — max 10MB</p>
         <input
           ref={inputRef}
@@ -207,7 +207,7 @@ export default function UploadPage() {
             </p>
             {result.total > 0 && (
               <p className="text-xs text-green-600 mt-0.5">
-                {result.total} leads database mein add ho gayi
+                {result.total} leads are added to the database
               </p>
             )}
           </div>
@@ -249,7 +249,7 @@ export default function UploadPage() {
       <div className="mt-8 bg-gray-50 rounded-xl p-4 border border-gray-200">
         <p className="text-sm font-semibold text-gray-700 mb-1">CSV / Excel Format</p>
         <p className="text-xs text-gray-500 mb-3">
-          <span className="text-red-500 font-medium">phone</span> — required hai, baaki sab optional
+          <span className="text-red-500 font-medium">phone</span> — is required , rest are optional
         </p>
         <div className="overflow-x-auto">
           <table className="text-xs text-gray-600 w-full border-collapse">

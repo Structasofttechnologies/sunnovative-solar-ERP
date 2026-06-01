@@ -60,8 +60,8 @@ export default function LeadTables({ leads = [], onRefresh }) {
   if (leads.length === 0) {
     return (
       <div className="text-center py-20 text-gray-400">
-        <p className="text-lg">Koi lead nahi mili</p>
-        <p className="text-sm mt-1">Add Lead button se nayi lead add karo</p>
+        <p className="text-lg">No leads found</p>
+        <p className="text-sm mt-1">Add a lead from the add lead button</p>
       </div>
     );
   }

@@ -31,8 +31,8 @@ export default function MyLeads() {
         <div className="text-center py-20 text-gray-400">Loading your leads...</div>
       ) : leads.length === 0 ? (
         <div className="text-center py-20 text-gray-400">
-          <p className="text-lg font-medium">Koi lead assign nahi hui abhi</p>
-          <p className="text-sm mt-1">Admin se kisi lead ko assign karwao</p>
+          <p className="text-lg font-medium">No leads assigned to you</p>
+          <p className="text-sm mt-1">Assign leads from the leads page</p>
         </div>
       ) : (
         <LeadTables leads={leads} onRefresh={fetchMyLeads} />

@@ -118,7 +118,7 @@ export default function LeadDetails() {
 
       {/* Update Status */}
       <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-5">
-        <p className="text-sm font-semibold text-gray-700 mb-3">Status Update karo</p>
+        <p className="text-sm font-semibold text-gray-700 mb-3"> Update status </p>
         <div className="flex gap-2">
           <select value={status} onChange={e => setStatus(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">

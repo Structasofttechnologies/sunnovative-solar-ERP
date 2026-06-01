@@ -129,7 +129,7 @@ export default function FormSubmissionsViewer() {
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
-          onClick={() => navigate('/settings/forms')}
+          onClick={() => navigate('/admin/settings/forms')}
           className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"
         >
           <ArrowLeft size={17} />
@@ -195,7 +195,7 @@ export default function FormSubmissionsViewer() {
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <FileText size={40} className="mx-auto mb-3 opacity-30" />
-          <p>Koi submission nahi mili</p>
+          <p>No submissions found</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto">

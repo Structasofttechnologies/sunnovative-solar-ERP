@@ -108,14 +108,14 @@ export default function DynamicFormRenderer({
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
-      toast.error('Kuch fields mein error hai');
+      toast.error('error in some fields');
       return;
     }
     try {
       setSubmitting(true);
       const res = await formBuilderAPI.submitForm(slug, formData);
       setSubmitted(true);
-      toast.success('Form submit ho gaya!');
+      toast.success('Form submitted successfully!');
       if (onSuccess) onSuccess(res.data);
     } catch (err) {
       const serverErrors = err.response?.data?.errors;
@@ -151,7 +151,7 @@ export default function DynamicFormRenderer({
         <CheckCircle2 size={52} className="text-green-500 mb-4" />
         <h3 className="text-xl font-bold text-gray-800">Successfully Submitted!</h3>
         <p className="text-gray-500 mt-1">
-          Aapka {formSchema.projectName} form submit ho gaya hai
+          your {formSchema.projectName} form submitted
         </p>
       </div>
     );
@@ -266,7 +266,7 @@ function FieldRenderer({ field, value, error, onChange, onCheckboxChange }) {
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
           >
-            <option value="">-- Select karein --</option>
+            <option value="">-- Select  --</option>
             {(field.options || []).map((opt) => (
               <option key={opt} value={opt}>{opt}</option>
             ))}
