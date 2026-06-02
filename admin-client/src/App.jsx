@@ -1,813 +1,580 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { authAPI } from './api/api';
 import authStore from './store/authStore';
-import Login from './pages/Login';
-import AdminLayout from './admin/layouts/AdminLayout';
-import AdminInventoryDashboard from './admin/pages/dashboard/InventoryDashboard';
-import AdminDeliveryDashboard from './admin/pages/dashboard/DeliveryDashboard';
-import AdminInstallerDashboard from './admin/pages/dashboard/InstallerDashboard';
-import FranchiseManagerDashboard from './admin/pages/dashboard/userPerformance/FranchiseManagerDashboard';
-import FranchisePerformanceDashboard from './admin/pages/dashboard/userPerformance/FranchiseDashboard';
-import DealerManagerPerformanceDashboard from './admin/pages/dashboard/userPerformance/DealerManagerDashboard';
-import DealerPerformanceDashboard from './admin/pages/dashboard/userPerformance/DealerDashboard';
-import AdminOrdersDashboard from './admin/pages/dashboard/OrdersDashboard';
-import AdminOrdersByLoanDashboard from './admin/pages/dashboard/OrdersByLoanDashboard';
-import AdminVendorsDashboard from './admin/pages/dashboard/VendorsDashboard';
-import AdminProjectReport from './admin/pages/dashboard/ProjectReport';
-import AdminDepartments from './admin/pages/departments/Departments';
-import AdminOrganizationChart from './admin/pages/departments/OrganizationChart';
-import AdminApprovals from './admin/pages/approvals/Approvals';
-import ManagementProjects from './admin/pages/project-management/management/Management';
-import InstallProjects from './admin/pages/project-management/install/Install';
-import ServiceProjects from './admin/pages/project-management/service/Service';
-import TrackServiceProjects from './admin/pages/project-management/track-service/TrackService';
-import AdminResidentialProject from './admin/pages/project-management/residential/AdminResidentialProject';
-import AdminCommercialProject from './admin/pages/project-management/commercial/AdminCommercialProject';
-import AdminWarehouse from './admin/pages/operations/Warehouse';
-import AdminAddInventory from './admin/pages/operations/AddInventory';
-import AdminInventoryManagement from './admin/pages/operations/InventoryManagement';
-// Location Settings
-import SetupLocations from './admin/pages/settings/location/SetupLocations';
 
-// New Main Settings Sections (direct files)
-import ApprovalOverdueSetting from './admin/pages/settings/ApprovalOverdueSetting';
-import OverdueTaskSetting from './admin/pages/settings/OverdueTaskSetting';
-import OverdueStatusSetting from './admin/pages/settings/OverdueStatusSetting';
-import LoanSetting from './admin/pages/settings/LoanSetting';
-import ChecklistSetting from './admin/pages/settings/ChecklistSetting';
-
-// Dynamic Form Builder
-import FormBuilderList from './admin/pages/settings/Form/FormBuilderList';
-import FormBuilderEditor from './admin/pages/settings/Form/FormBuilderEditor';
-import FormBuilderPreview from './admin/pages/settings/Form/FormBuilderPreview';
-import FormSubmissionsViewer from './admin/pages/settings/Form/FormSubmissionsViewer';
-
-// HR Settings
-import RoleSettings from './admin/pages/settings/hr/RoleSettings';
-import CreateDepartment from './admin/pages/settings/hr/CreateDepartment';
-import ManageEmployees from './admin/pages/settings/hr/ManageEmployees';
-import ManageModules from './admin/pages/settings/hr/ManageModules';
-import DepartmentWiseModules from './admin/pages/settings/hr/DepartmentWiseModules';
-import TemporaryInchargeSetting from './admin/pages/settings/hr/TemporaryInchargeSetting';
-import LeaveApprovals from './admin/pages/settings/hr/LeaveApprovals';
-import ResignApprovals from './admin/pages/settings/hr/ResignApprovals';
-
-// Vendor Settings
-import InstallerVendors from './admin/pages/settings/vendor/InstallerVendors';
-import SupplierType from './admin/pages/settings/vendor/SupplierType';
-import SupplierVendors from './admin/pages/settings/vendor/SupplierVendors';
-
-// Sales Settings
-import SetPrice from './admin/pages/settings/sales/SetPrice';
-import SetPriceAmc from './admin/pages/settings/sales/SetPriceAmc';
-import Offers from './admin/pages/settings/sales/Offers';
-import SolarPanelBundleSetting from './admin/pages/settings/sales/SolarPanelBundleSetting';
-
-// Marketing Settings
-import CampaignManagement from './admin/pages/settings/marketing/CampaignManagement';
-
-// Delivery Settings
-import DeliveryType from './admin/pages/settings/delivery/DeliveryType';
-import VehicleSelection from './admin/pages/settings/delivery/VehicleSelection';
-import VendorDeliveryPlan from './admin/pages/settings/delivery/VendorDeliveryPlan';
-
-
-
-// Installer Settings
-import SolarInstaller from './admin/pages/settings/installer/SolarInstaller';
-import ToolRequirements from './admin/pages/settings/installer/ToolRequirements';
-import RatingSetting from './admin/pages/settings/installer/RatingSetting';
-import Agency from './admin/pages/settings/installer/Agency';
-import AgencyPlan from './admin/pages/settings/installer/AgencyPlan';
-
-
-// Inventory Settings
-import InventoryOverview from './admin/pages/settings/inventory/InventoryOverview';
-import RestockOrderLimit from './admin/pages/settings/inventory/RestockOrderLimit';
-import CombokitBrandOverview from './admin/pages/settings/inventory/CombokitBrandOverview';
-
-// Product Settings
-import AddProjectType from './admin/pages/settings/product/AddProjectType';
-import AddProjectCategory from './admin/pages/settings/product/AddProjectCategory';
-import AddProduct from './admin/pages/settings/product/AddProduct';
-import Sku from './admin/pages/settings/product/Sku';
-import PriceMaster from './admin/pages/settings/product/PriceMaster';
-import AddUnitManagement from './admin/pages/settings/product/AddUnitManagement';
-
-// Brand Settings
-import AddBrandManufacturer from './admin/pages/operations/brand/AddBrandManufacturer';
-import SupplierOverview from './admin/pages/operations/brand/SupplierOverview';
-
-// ComboKit Settings
-import CreateSolarkit from './admin/pages/settings/combokit/CreateSolarkit';
-import CreateAmc from './admin/pages/settings/combokit/CreateAmc';
-import AmcServices from './admin/pages/settings/combokit/AmcServices';
-import BundlePlans from './admin/pages/settings/combokit/BundlePlans';
-import AddComboKit from './admin/pages/settings/combokit/AddComboKit';
-import Customize from './admin/pages/settings/combokit/Customize';
-
-// ComboKit Overview Settings (direct file)
-import CombokitOverview from './admin/pages/settings/combokit-overview/CombokitOverview';
-
-// Order Procurement Settings (direct file)
-import OrderProcurement from './admin/pages/settings/order-procurement/OrderProcurement';
-
-
-
-// Partner Settings (Unified)
-import AddPartner from './admin/pages/settings/partner/AddPartner';
-import PartnerPlans from './admin/pages/settings/partner/Plans';
-import PartnerPointsRewards from './admin/pages/settings/partner/PointsRewards';
-import PartnerOnboardingGoals from './admin/pages/settings/partner/OnboardingGoals';
-import PartnerProfessionType from './admin/pages/settings/partner/ProfessionType';
-import FranchiseeManagerSetting from './admin/pages/settings/partner/FranchiseeManagerSetting';
-import FranchiseBuyLeadSetting from './admin/pages/settings/partner/FranchiseBuyLeadSetting';
-
-// HRMS Settings
-import HrmsSettings from './admin/pages/settings/hrms/Settings';
-import CandidateList from './admin/pages/settings/hrms/CandidateList';
-import CandidateTestSetting from './admin/pages/settings/hrms/CandidateTestSetting';
-import CandidateTrainingSetting from './admin/pages/settings/hrms/CandidateTrainingSetting';
-import VacancySetting from './admin/pages/settings/hrms/VacancySetting';
-
-// Project Settings
-import JourneyStageSetting from './admin/pages/settings/project/JourneyStageSetting';
-import ProjectOverdueSetting from './admin/pages/settings/project/OverdueSetting';
-import ConfigurationSetting from './admin/pages/settings/project/ConfigurationSetting';
-import AddProjectDescription from './admin/pages/settings/product/AddProjectDescription';
-import DocumentationSetting from './admin/pages/settings/project/DocumentationSetting';
-import PlaceholderNameSetting from './admin/pages/settings/project/PlaceholderNameSetting';
-
-// Quote Settings
-import QuoteSetting from './admin/pages/settings/quote/QuoteSetting';
-import SurveyBomSetting from './admin/pages/settings/quote/SurveyBomSetting';
-import TerraceSetting from './admin/pages/settings/quote/TerraceSetting';
-import StructureSetting from './admin/pages/settings/quote/StructureSetting';
-import BuildingSetting from './admin/pages/settings/quote/BuildingSetting';
-import DiscomMaster from './admin/pages/settings/quote/DiscomMaster';
-import AdminFinancialPLReport from './admin/pages/reports/FinancialPLReport';
-import AdminCashflowReport from './admin/pages/reports/CashflowReport';
-import AdminInventoryReport from './admin/pages/reports/InventoryReport';
-import AdminLoansSummaryReport from './admin/pages/reports/LoansSummaryReport';
-import AdminCaptableReport from './admin/pages/reports/CaptableReport';
-import AdminRevenueByCPTypesReport from './admin/pages/reports/RevenueByCPTypesReport';
-import AdminClusterReport from './admin/pages/reports/ClusterReport';
-import AdminDistrictReport from './admin/pages/reports/DistrictReport';
-import AdminCityReport from './admin/pages/reports/CityReport';
-import DealerDashboard from './dealer/pages/dashboard/Dashboard';
-
-import DealerLayout from './dealer/layouts/DealerLayout';
-
-// Dealer Manager Imports
-import DealerManagerLayout from './dealerManager/layouts/DealerManagerLayout';
-import DealerManagerDashboard from './dealerManager/pages/dashboard/DealerManagerDashboard';
-import DealerManagerLeads from './dealerManager/pages/leads/Leads';
-import DealerManagerOnboardingCompanyLead from './dealerManager/pages/leads/DealerManagerOnboardingCompanyLead';
-import DealerManagerMyLeads from './dealerManager/pages/leads/DealerManagerMyLeads';
-import DealerManagerSubLeads from './dealerManager/pages/leads/SubLeads';
-import DealerManagerAppDemo from './dealerManager/pages/myTask/AppDemo';
-import DealerManagerDealerSignup from './dealerManager/pages/myTask/dealerOnboarding/DealerSignup';
-import DealerManagerDealerOrientation from './dealerManager/pages/myTask/dealerOnboarding/DealerOrientation';
-import DealerManagerOrientationVideo from './dealerManager/pages/myTask/dealerOnboarding/DealerManagerOrientationVideo';
-import DealerManagerProjectInProgress from './dealerManager/pages/myTask/projectManagement/ProjectInProgress';
-import DealerManagerCompletedProjects from './dealerManager/pages/myTask/projectManagement/CompletedProjects';
-import DealerManagerDealerPerformance from './dealerManager/pages/myTask/DealerPerformance';
-import DealerManagerDealerPerformanceList from './dealerManager/pages/myTask/DealerPerformanceList';
-import DealerManagerOnboardingGoals from './dealerManager/pages/onboardingGoals/OnboardingGoals';
-import DealerManagerServiceTicket from './dealerManager/pages/tickets/Service';
-import DealerManagerDisputeTicket from './dealerManager/pages/tickets/Dispute';
-import DealerManagerReport from './dealerManager/pages/report/Report';
-
-// Project Signup
-import Lead from './dealer/pages/projectSignup/Lead';
-import SurveyBOM from './dealer/pages/projectSignup/SurveyBOM';
-import ProjectQuote from './dealer/pages/projectSignup/ProjectQuote';
-import ProjectSignupPage from './dealer/pages/projectSignup/ProjectSignup';
-
-// Project Management
-
-import Manage from './dealer/pages/projectManagement/Manage';
-import TrackPM from './dealer/pages/projectManagement/Track';
-import DealerResidentialProject from './dealer/pages/projectManagement/DealerResidentialProject';
-import DealerCommercialProject from './dealer/pages/projectManagement/DealerCommercialProject';
-
-// Track
-
-import ProjectProgress from './dealer/pages/track/ProjectProgress';
-import MyCommission from './dealer/pages/track/MyCommission';
-
-// Tickets
-
-import RaiseTicket from './dealer/pages/tickets/RaiseTicket';
-import TicketStatus from './dealer/pages/tickets/TicketStatus';
-
-import SolarKit from './dealer/pages/solarKit/SolarKit';
-import Loan from './dealer/pages/loan/Loan';
-import Reports from './dealer/pages/reports/Reports';
-
-// Franchisee Imports
-import FranchiseeLayout from './franchisee/layouts/FranchiseeLayout';
-import FranchiseDashboard from './franchisee/pages/dashboard/FranchiseDashboard';
-import DistrictManager from './franchisee/pages/DistrictManager/DistrictManager';
-import LeadAssignDashboard from './franchisee/pages/dashboard/LeadAssignDashboard';
-import SurveyBom from './franchisee/pages/SurveyBom/SurveyBom';
-import DealerManager from './franchisee/pages/DealerManager/DealerManager';
-import CreateLeadPartner from './franchisee/pages/LeadPartner/CreateLeadPartner';
-import LeadManagement from './franchisee/pages/LeadPartner/LeadManagement';
-import MyTeam from './franchisee/pages/MyTeam/MyTeam';
-import TrackPayments from './franchisee/pages/Account/TrackPayments';
-import Solarkits from './franchisee/pages/Solarkits/Solarkits';
-import BulkOrder from './franchisee/pages/Solarkits/BulkOrder';
-import Settings from './franchisee/pages/Settings/Settings';
-import FranchiseeLead from './franchisee/pages/projectSignup/Lead';
-import FranchiseeCreateQuotation from './franchisee/pages/projectSignup/CreateQuotation';
-import FranchiseeProjectSignup from './franchisee/pages/projectSignup/ProjectSignup';
-import FranchiseeLoan from './franchisee/pages/projectSignup/Loan';
-import FranchiseeManagement from './franchisee/pages/projectManagement/Management';
-import FranchiseeInstall from './franchisee/pages/projectManagement/Install';
-import FranchiseeService from './franchisee/pages/projectManagement/Service';
-import FranchiseeTrackService from './franchisee/pages/projectManagement/TrackService';
-
-// Franchisee Manager Imports
-import FranchiseeManagerLayout from './franchiseeManager/layouts/FranchiseeManagerLayout';
-import FranchiseeManagerDashboard from './franchiseeManager/pages/dashboard/FranchiseeManagerDashboard';
-import FranchiseeManagerLeads from './franchiseeManager/pages/leads/Leads';
-import FranchiseeManagerLeadManagement from './franchiseeManager/pages/leadManagement/LeadManagement';
-import FranchiseeManagerOnboardingGoals from './franchiseeManager/pages/onboardingGoals/OnboardingGoals';
-import FranchiseeManagerFindResources from './franchiseeManager/pages/resources/FindResources';
-import FranchiseeManagerReport from './franchiseeManager/pages/report/Report';
-
-// My Task
-import FMAppDemo from './franchiseeManager/pages/myTask/AppDemo';
-import FMFranchiseeSignup from './franchiseeManager/pages/myTask/franchiseeOnboarding/FranchiseeSignup';
-import FMFranchiseeOrientation from './franchiseeManager/pages/myTask/franchiseeOnboarding/FranchiseeOrientation';
-import FMProjectInProgress from './franchiseeManager/pages/myTask/projectManagement/ProjectInProgress';
-import FMFranchiseePerformance from './franchiseeManager/pages/myTask/FranchiseePerformance';
-
-// Franchise Setting
-import FMComboKitCustomization from './franchiseeManager/pages/franchiseSetting/ComboKitCustomization';
-import FMOffers from './franchiseeManager/pages/franchiseSetting/Offers';
-import FMTrackCashback from './franchiseeManager/pages/franchiseSetting/TrackCashback';
-
-// Dealer Management
-import FMAssignToFranchisee from './franchiseeManager/pages/dealerManagement/AssignToFranchisee';
-import FMTrackDealer from './franchiseeManager/pages/dealerManagement/TrackDealer';
-import FMReassignToCompany from './franchiseeManager/pages/dealerManagement/ReassignToCompany';
-
-// Tickets
-import FMServiceTicket from './franchiseeManager/pages/tickets/Service';
-import FMDisputeTicket from './franchiseeManager/pages/tickets/Dispute';
-
-// Candidate Portal Imports
-import CandidateLayout from './candidate/layouts/CandidateLayout';
-import CandidateLogin from './candidate/pages/Login';
-import CandidateDashboard from './candidate/pages/Dashboard';
-import CandidateTest from './candidate/pages/Test';
-import CandidateCompleteApplication from './candidate/pages/CompleteApplication';
-
-// Leads Imports
-import LeadsPage from './admin/pages/leads';
-import AnalyticsPage from './admin/pages/leads/analytics';
-import UploadPage from './admin/pages/leads/upload';
-import ProjectWise from './admin/pages/leads/ProjectWise';
-import LeadDetails from './admin/pages/leads/leadDetails';
-import MyLeads from './admin/pages/leads/my-leads';
-import AssignedLeads from './admin/pages/leads/AssignedLead';
-
-// Employee Imports
-import OnboardingTraining from './employee/pages/OnboardingTraining';
-import EmployeeLogin from './employee/pages/EmployeeLogin';
-
-// Components
+// ─── Only NON-LAZY imports (layouts + critical path) ───────────────────────
 import GlobalLoader from './components/GlobalLoader';
 
+// ─── Lazy: Auth Pages ───────────────────────────────────────────────────────
+const Login         = lazy(() => import('./pages/Login'));
+const EmployeeLogin = lazy(() => import('./employee/pages/EmployeeLogin'));
+const CandidateLogin = lazy(() => import('./candidate/pages/Login'));
+
+// ─── Lazy: Layouts ──────────────────────────────────────────────────────────
+const AdminLayout            = lazy(() => import('./admin/layouts/AdminLayout'));
+const DealerLayout           = lazy(() => import('./dealer/layouts/DealerLayout'));
+const FranchiseeLayout       = lazy(() => import('./franchisee/layouts/FranchiseeLayout'));
+const DealerManagerLayout    = lazy(() => import('./dealerManager/layouts/DealerManagerLayout'));
+const FranchiseeManagerLayout = lazy(() => import('./franchiseeManager/layouts/FranchiseeManagerLayout'));
+const CandidateLayout        = lazy(() => import('./candidate/layouts/CandidateLayout'));
+
+// ─── Lazy: Admin Dashboards ─────────────────────────────────────────────────
+const AdminInventoryDashboard        = lazy(() => import('./admin/pages/dashboard/InventoryDashboard'));
+const AdminDeliveryDashboard         = lazy(() => import('./admin/pages/dashboard/DeliveryDashboard'));
+const AdminInstallerDashboard        = lazy(() => import('./admin/pages/dashboard/InstallerDashboard'));
+const FranchiseManagerDashboard      = lazy(() => import('./admin/pages/dashboard/userPerformance/FranchiseManagerDashboard'));
+const FranchisePerformanceDashboard  = lazy(() => import('./admin/pages/dashboard/userPerformance/FranchiseDashboard'));
+const DealerManagerPerformanceDashboard = lazy(() => import('./admin/pages/dashboard/userPerformance/DealerManagerDashboard'));
+const DealerPerformanceDashboard     = lazy(() => import('./admin/pages/dashboard/userPerformance/DealerDashboard'));
+const AdminOrdersDashboard           = lazy(() => import('./admin/pages/dashboard/OrdersDashboard'));
+const AdminOrdersByLoanDashboard     = lazy(() => import('./admin/pages/dashboard/OrdersByLoanDashboard'));
+const AdminVendorsDashboard          = lazy(() => import('./admin/pages/dashboard/VendorsDashboard'));
+const AdminProjectReport             = lazy(() => import('./admin/pages/dashboard/ProjectReport'));
+
+// ─── Lazy: Admin Pages ──────────────────────────────────────────────────────
+const AdminDepartments         = lazy(() => import('./admin/pages/departments/Departments'));
+const AdminOrganizationChart   = lazy(() => import('./admin/pages/departments/OrganizationChart'));
+const AdminApprovals           = lazy(() => import('./admin/pages/approvals/Approvals'));
+const ManagementProjects       = lazy(() => import('./admin/pages/project-management/management/Management'));
+const InstallProjects          = lazy(() => import('./admin/pages/project-management/install/Install'));
+const ServiceProjects          = lazy(() => import('./admin/pages/project-management/service/Service'));
+const TrackServiceProjects     = lazy(() => import('./admin/pages/project-management/track-service/TrackService'));
+const AdminResidentialProject  = lazy(() => import('./admin/pages/project-management/residential/AdminResidentialProject'));
+const AdminCommercialProject   = lazy(() => import('./admin/pages/project-management/commercial/AdminCommercialProject'));
+const AdminWarehouse           = lazy(() => import('./admin/pages/operations/Warehouse'));
+const AdminAddInventory        = lazy(() => import('./admin/pages/operations/AddInventory'));
+const AdminInventoryManagement = lazy(() => import('./admin/pages/operations/InventoryManagement'));
+
+// ─── Lazy: Admin Leads ──────────────────────────────────────────────────────
+const LeadsPage     = lazy(() => import('./admin/pages/leads'));
+const AnalyticsPage = lazy(() => import('./admin/pages/leads/analytics'));
+const UploadPage    = lazy(() => import('./admin/pages/leads/upload'));
+const ProjectWise   = lazy(() => import('./admin/pages/leads/ProjectWise'));
+const LeadDetails   = lazy(() => import('./admin/pages/leads/leadDetails'));
+const MyLeads       = lazy(() => import('./admin/pages/leads/my-leads'));
+const AssignedLeads = lazy(() => import('./admin/pages/leads/AssignedLead'));
+
+// ─── Lazy: Admin Settings ───────────────────────────────────────────────────
+const SetupLocations            = lazy(() => import('./admin/pages/settings/location/SetupLocations'));
+const ApprovalOverdueSetting    = lazy(() => import('./admin/pages/settings/ApprovalOverdueSetting'));
+const OverdueTaskSetting        = lazy(() => import('./admin/pages/settings/OverdueTaskSetting'));
+const OverdueStatusSetting      = lazy(() => import('./admin/pages/settings/OverdueStatusSetting'));
+const LoanSetting               = lazy(() => import('./admin/pages/settings/LoanSetting'));
+const ChecklistSetting          = lazy(() => import('./admin/pages/settings/ChecklistSetting'));
+const FormBuilderList           = lazy(() => import('./admin/pages/settings/Form/FormBuilderList'));
+const FormBuilderEditor         = lazy(() => import('./admin/pages/settings/Form/FormBuilderEditor'));
+const FormBuilderPreview        = lazy(() => import('./admin/pages/settings/Form/FormBuilderPreview'));
+const FormSubmissionsViewer     = lazy(() => import('./admin/pages/settings/Form/FormSubmissionsViewer'));
+const RoleSettings              = lazy(() => import('./admin/pages/settings/hr/RoleSettings'));
+const CreateDepartment          = lazy(() => import('./admin/pages/settings/hr/CreateDepartment'));
+const ManageEmployees           = lazy(() => import('./admin/pages/settings/hr/ManageEmployees'));
+const ManageModules             = lazy(() => import('./admin/pages/settings/hr/ManageModules'));
+const DepartmentWiseModules     = lazy(() => import('./admin/pages/settings/hr/DepartmentWiseModules'));
+const TemporaryInchargeSetting  = lazy(() => import('./admin/pages/settings/hr/TemporaryInchargeSetting'));
+const LeaveApprovals            = lazy(() => import('./admin/pages/settings/hr/LeaveApprovals'));
+const ResignApprovals           = lazy(() => import('./admin/pages/settings/hr/ResignApprovals'));
+const InstallerVendors          = lazy(() => import('./admin/pages/settings/vendor/InstallerVendors'));
+const SupplierType              = lazy(() => import('./admin/pages/settings/vendor/SupplierType'));
+const SupplierVendors           = lazy(() => import('./admin/pages/settings/vendor/SupplierVendors'));
+const SetPrice                  = lazy(() => import('./admin/pages/settings/sales/SetPrice'));
+const SetPriceAmc               = lazy(() => import('./admin/pages/settings/sales/SetPriceAmc'));
+const Offers                    = lazy(() => import('./admin/pages/settings/sales/Offers'));
+const SolarPanelBundleSetting   = lazy(() => import('./admin/pages/settings/sales/SolarPanelBundleSetting'));
+const CampaignManagement        = lazy(() => import('./admin/pages/settings/marketing/CampaignManagement'));
+const DeliveryType              = lazy(() => import('./admin/pages/settings/delivery/DeliveryType'));
+const VehicleSelection          = lazy(() => import('./admin/pages/settings/delivery/VehicleSelection'));
+const VendorDeliveryPlan        = lazy(() => import('./admin/pages/settings/delivery/VendorDeliveryPlan'));
+const SolarInstaller            = lazy(() => import('./admin/pages/settings/installer/SolarInstaller'));
+const ToolRequirements          = lazy(() => import('./admin/pages/settings/installer/ToolRequirements'));
+const RatingSetting             = lazy(() => import('./admin/pages/settings/installer/RatingSetting'));
+const Agency                    = lazy(() => import('./admin/pages/settings/installer/Agency'));
+const AgencyPlan                = lazy(() => import('./admin/pages/settings/installer/AgencyPlan'));
+const InventoryOverview         = lazy(() => import('./admin/pages/settings/inventory/InventoryOverview'));
+const RestockOrderLimit         = lazy(() => import('./admin/pages/settings/inventory/RestockOrderLimit'));
+const CombokitBrandOverview     = lazy(() => import('./admin/pages/settings/inventory/CombokitBrandOverview'));
+const AddProjectType            = lazy(() => import('./admin/pages/settings/product/AddProjectType'));
+const AddProjectCategory        = lazy(() => import('./admin/pages/settings/product/AddProjectCategory'));
+const AddProduct                = lazy(() => import('./admin/pages/settings/product/AddProduct'));
+const Sku                       = lazy(() => import('./admin/pages/settings/product/Sku'));
+const PriceMaster               = lazy(() => import('./admin/pages/settings/product/PriceMaster'));
+const AddUnitManagement         = lazy(() => import('./admin/pages/settings/product/AddUnitManagement'));
+const AddProjectDescription     = lazy(() => import('./admin/pages/settings/product/AddProjectDescription'));
+const AddBrandManufacturer      = lazy(() => import('./admin/pages/operations/brand/AddBrandManufacturer'));
+const SupplierOverview          = lazy(() => import('./admin/pages/operations/brand/SupplierOverview'));
+const CreateSolarkit            = lazy(() => import('./admin/pages/settings/combokit/CreateSolarkit'));
+const CreateAmc                 = lazy(() => import('./admin/pages/settings/combokit/CreateAmc'));
+const AmcServices               = lazy(() => import('./admin/pages/settings/combokit/AmcServices'));
+const BundlePlans               = lazy(() => import('./admin/pages/settings/combokit/BundlePlans'));
+const AddComboKit               = lazy(() => import('./admin/pages/settings/combokit/AddComboKit'));
+const Customize                 = lazy(() => import('./admin/pages/settings/combokit/Customize'));
+const CombokitOverview          = lazy(() => import('./admin/pages/settings/combokit-overview/CombokitOverview'));
+const OrderProcurement          = lazy(() => import('./admin/pages/settings/order-procurement/OrderProcurement'));
+const AddPartner                = lazy(() => import('./admin/pages/settings/partner/AddPartner'));
+const PartnerPlans              = lazy(() => import('./admin/pages/settings/partner/Plans'));
+const PartnerPointsRewards      = lazy(() => import('./admin/pages/settings/partner/PointsRewards'));
+const PartnerOnboardingGoals    = lazy(() => import('./admin/pages/settings/partner/OnboardingGoals'));
+const PartnerProfessionType     = lazy(() => import('./admin/pages/settings/partner/ProfessionType'));
+const FranchiseeManagerSetting  = lazy(() => import('./admin/pages/settings/partner/FranchiseeManagerSetting'));
+const FranchiseBuyLeadSetting   = lazy(() => import('./admin/pages/settings/partner/FranchiseBuyLeadSetting'));
+const HrmsSettings              = lazy(() => import('./admin/pages/settings/hrms/Settings'));
+const CandidateList             = lazy(() => import('./admin/pages/settings/hrms/CandidateList'));
+const CandidateTestSetting      = lazy(() => import('./admin/pages/settings/hrms/CandidateTestSetting'));
+const CandidateTrainingSetting  = lazy(() => import('./admin/pages/settings/hrms/CandidateTrainingSetting'));
+const VacancySetting            = lazy(() => import('./admin/pages/settings/hrms/VacancySetting'));
+const JourneyStageSetting       = lazy(() => import('./admin/pages/settings/project/JourneyStageSetting'));
+const ProjectOverdueSetting     = lazy(() => import('./admin/pages/settings/project/OverdueSetting'));
+const ConfigurationSetting      = lazy(() => import('./admin/pages/settings/project/ConfigurationSetting'));
+const DocumentationSetting      = lazy(() => import('./admin/pages/settings/project/DocumentationSetting'));
+const PlaceholderNameSetting    = lazy(() => import('./admin/pages/settings/project/PlaceholderNameSetting'));
+const QuoteSetting              = lazy(() => import('./admin/pages/settings/quote/QuoteSetting'));
+const SurveyBomSetting          = lazy(() => import('./admin/pages/settings/quote/SurveyBomSetting'));
+const TerraceSetting            = lazy(() => import('./admin/pages/settings/quote/TerraceSetting'));
+const StructureSetting          = lazy(() => import('./admin/pages/settings/quote/StructureSetting'));
+const BuildingSetting           = lazy(() => import('./admin/pages/settings/quote/BuildingSetting'));
+const DiscomMaster              = lazy(() => import('./admin/pages/settings/quote/DiscomMaster'));
+
+// ─── Lazy: Admin Reports ────────────────────────────────────────────────────
+const AdminFinancialPLReport       = lazy(() => import('./admin/pages/reports/FinancialPLReport'));
+const AdminCashflowReport          = lazy(() => import('./admin/pages/reports/CashflowReport'));
+const AdminInventoryReport         = lazy(() => import('./admin/pages/reports/InventoryReport'));
+const AdminLoansSummaryReport      = lazy(() => import('./admin/pages/reports/LoansSummaryReport'));
+const AdminCaptableReport          = lazy(() => import('./admin/pages/reports/CaptableReport'));
+const AdminRevenueByCPTypesReport  = lazy(() => import('./admin/pages/reports/RevenueByCPTypesReport'));
+const AdminClusterReport           = lazy(() => import('./admin/pages/reports/ClusterReport'));
+const AdminDistrictReport          = lazy(() => import('./admin/pages/reports/DistrictReport'));
+const AdminCityReport              = lazy(() => import('./admin/pages/reports/CityReport'));
+
+// ─── Lazy: Dealer ───────────────────────────────────────────────────────────
+const DealerDashboard         = lazy(() => import('./dealer/pages/dashboard/Dashboard'));
+const Lead                    = lazy(() => import('./dealer/pages/projectSignup/Lead'));
+const SurveyBOM               = lazy(() => import('./dealer/pages/projectSignup/SurveyBOM'));
+const ProjectQuote            = lazy(() => import('./dealer/pages/projectSignup/ProjectQuote'));
+const ProjectSignupPage       = lazy(() => import('./dealer/pages/projectSignup/ProjectSignup'));
+const Manage                  = lazy(() => import('./dealer/pages/projectManagement/Manage'));
+const TrackPM                 = lazy(() => import('./dealer/pages/projectManagement/Track'));
+const DealerResidentialProject = lazy(() => import('./dealer/pages/projectManagement/DealerResidentialProject'));
+const DealerCommercialProject  = lazy(() => import('./dealer/pages/projectManagement/DealerCommercialProject'));
+const ProjectProgress         = lazy(() => import('./dealer/pages/track/ProjectProgress'));
+const MyCommission            = lazy(() => import('./dealer/pages/track/MyCommission'));
+const RaiseTicket             = lazy(() => import('./dealer/pages/tickets/RaiseTicket'));
+const TicketStatus            = lazy(() => import('./dealer/pages/tickets/TicketStatus'));
+const SolarKit                = lazy(() => import('./dealer/pages/solarKit/SolarKit'));
+const Loan                    = lazy(() => import('./dealer/pages/loan/Loan'));
+const Reports                 = lazy(() => import('./dealer/pages/reports/Reports'));
+
+// ─── Lazy: Dealer Manager ───────────────────────────────────────────────────
+const DealerManagerDashboard            = lazy(() => import('./dealerManager/pages/dashboard/DealerManagerDashboard'));
+const DealerManagerLeads                = lazy(() => import('./dealerManager/pages/leads/Leads'));
+const DealerManagerOnboardingCompanyLead = lazy(() => import('./dealerManager/pages/leads/DealerManagerOnboardingCompanyLead'));
+const DealerManagerMyLeads              = lazy(() => import('./dealerManager/pages/leads/DealerManagerMyLeads'));
+const DealerManagerSubLeads             = lazy(() => import('./dealerManager/pages/leads/SubLeads'));
+const DealerManagerAppDemo              = lazy(() => import('./dealerManager/pages/myTask/AppDemo'));
+const DealerManagerDealerSignup         = lazy(() => import('./dealerManager/pages/myTask/dealerOnboarding/DealerSignup'));
+const DealerManagerDealerOrientation    = lazy(() => import('./dealerManager/pages/myTask/dealerOnboarding/DealerOrientation'));
+const DealerManagerOrientationVideo     = lazy(() => import('./dealerManager/pages/myTask/dealerOnboarding/DealerManagerOrientationVideo'));
+const DealerManagerProjectInProgress    = lazy(() => import('./dealerManager/pages/myTask/projectManagement/ProjectInProgress'));
+const DealerManagerCompletedProjects    = lazy(() => import('./dealerManager/pages/myTask/projectManagement/CompletedProjects'));
+const DealerManagerDealerPerformance    = lazy(() => import('./dealerManager/pages/myTask/DealerPerformance'));
+const DealerManagerDealerPerformanceList = lazy(() => import('./dealerManager/pages/myTask/DealerPerformanceList'));
+const DealerManagerOnboardingGoals      = lazy(() => import('./dealerManager/pages/onboardingGoals/OnboardingGoals'));
+const DealerManagerServiceTicket        = lazy(() => import('./dealerManager/pages/tickets/Service'));
+const DealerManagerDisputeTicket        = lazy(() => import('./dealerManager/pages/tickets/Dispute'));
+const DealerManagerReport               = lazy(() => import('./dealerManager/pages/report/Report'));
+
+// ─── Lazy: Franchisee ───────────────────────────────────────────────────────
+const FranchiseDashboard      = lazy(() => import('./franchisee/pages/dashboard/FranchiseDashboard'));
+const DistrictManager         = lazy(() => import('./franchisee/pages/DistrictManager/DistrictManager'));
+const LeadAssignDashboard     = lazy(() => import('./franchisee/pages/dashboard/LeadAssignDashboard'));
+const SurveyBom               = lazy(() => import('./franchisee/pages/SurveyBom/SurveyBom'));
+const DealerManager           = lazy(() => import('./franchisee/pages/DealerManager/DealerManager'));
+const CreateLeadPartner       = lazy(() => import('./franchisee/pages/LeadPartner/CreateLeadPartner'));
+const LeadManagement          = lazy(() => import('./franchisee/pages/LeadPartner/LeadManagement'));
+const MyTeam                  = lazy(() => import('./franchisee/pages/MyTeam/MyTeam'));
+const TrackPayments           = lazy(() => import('./franchisee/pages/Account/TrackPayments'));
+const Solarkits               = lazy(() => import('./franchisee/pages/Solarkits/Solarkits'));
+const BulkOrder               = lazy(() => import('./franchisee/pages/Solarkits/BulkOrder'));
+const Settings                = lazy(() => import('./franchisee/pages/Settings/Settings'));
+const FranchiseeLead          = lazy(() => import('./franchisee/pages/projectSignup/Lead'));
+const FranchiseeCreateQuotation = lazy(() => import('./franchisee/pages/projectSignup/CreateQuotation'));
+const FranchiseeProjectSignup = lazy(() => import('./franchisee/pages/projectSignup/ProjectSignup'));
+const FranchiseeLoan          = lazy(() => import('./franchisee/pages/projectSignup/Loan'));
+const FranchiseeManagement    = lazy(() => import('./franchisee/pages/projectManagement/Management'));
+const FranchiseeInstall       = lazy(() => import('./franchisee/pages/projectManagement/Install'));
+const FranchiseeService       = lazy(() => import('./franchisee/pages/projectManagement/Service'));
+const FranchiseeTrackService  = lazy(() => import('./franchisee/pages/projectManagement/TrackService'));
+
+// ─── Lazy: Franchisee Manager ───────────────────────────────────────────────
+const FranchiseeManagerDashboard      = lazy(() => import('./franchiseeManager/pages/dashboard/FranchiseeManagerDashboard'));
+const FranchiseeManagerLeads          = lazy(() => import('./franchiseeManager/pages/leads/Leads'));
+const FranchiseeManagerLeadManagement = lazy(() => import('./franchiseeManager/pages/leadManagement/LeadManagement'));
+const FranchiseeManagerOnboardingGoals = lazy(() => import('./franchiseeManager/pages/onboardingGoals/OnboardingGoals'));
+const FranchiseeManagerFindResources  = lazy(() => import('./franchiseeManager/pages/resources/FindResources'));
+const FranchiseeManagerReport         = lazy(() => import('./franchiseeManager/pages/report/Report'));
+const FMAppDemo                       = lazy(() => import('./franchiseeManager/pages/myTask/AppDemo'));
+const FMFranchiseeSignup              = lazy(() => import('./franchiseeManager/pages/myTask/franchiseeOnboarding/FranchiseeSignup'));
+const FMFranchiseeOrientation         = lazy(() => import('./franchiseeManager/pages/myTask/franchiseeOnboarding/FranchiseeOrientation'));
+const FMProjectInProgress             = lazy(() => import('./franchiseeManager/pages/myTask/projectManagement/ProjectInProgress'));
+const FMFranchiseePerformance         = lazy(() => import('./franchiseeManager/pages/myTask/FranchiseePerformance'));
+const FMComboKitCustomization         = lazy(() => import('./franchiseeManager/pages/franchiseSetting/ComboKitCustomization'));
+const FMOffers                        = lazy(() => import('./franchiseeManager/pages/franchiseSetting/Offers'));
+const FMTrackCashback                 = lazy(() => import('./franchiseeManager/pages/franchiseSetting/TrackCashback'));
+const FMAssignToFranchisee            = lazy(() => import('./franchiseeManager/pages/dealerManagement/AssignToFranchisee'));
+const FMTrackDealer                   = lazy(() => import('./franchiseeManager/pages/dealerManagement/TrackDealer'));
+const FMReassignToCompany             = lazy(() => import('./franchiseeManager/pages/dealerManagement/ReassignToCompany'));
+const FMServiceTicket                 = lazy(() => import('./franchiseeManager/pages/tickets/Service'));
+const FMDisputeTicket                 = lazy(() => import('./franchiseeManager/pages/tickets/Dispute'));
+
+// ─── Lazy: Candidate ────────────────────────────────────────────────────────
+const CandidateDashboard          = lazy(() => import('./candidate/pages/Dashboard'));
+const CandidateTest               = lazy(() => import('./candidate/pages/Test'));
+const CandidateCompleteApplication = lazy(() => import('./candidate/pages/CompleteApplication'));
+
+// ─── Lazy: Employee ─────────────────────────────────────────────────────────
+const OnboardingTraining = lazy(() => import('./employee/pages/OnboardingTraining'));
+
+// ─── Shared fallback spinner ────────────────────────────────────────────────
+const PageLoader = () => (
+  <div className="flex h-screen items-center justify-center bg-gray-50">
+    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+  </div>
+);
+
+// ─── ProtectedRoute ─────────────────────────────────────────────────────────
 function ProtectedRoute({ children, requiredRole }) {
-  const user = authStore((state) => state.user);
-  const token = authStore((state) => state.token);
+  const { user, token } = authStore((state) => ({
+    user: state.user,
+    token: state.token,
+  }));
 
-  if (!token || !user) {
-    return <Navigate to="/login" />;
-  }
-
-  if (requiredRole && user.role !== requiredRole) {
-    return <Navigate to="/dashboard" />;
-  }
-
+  if (!token || !user) return <Navigate to="/login" />;
+  if (requiredRole && user.role !== requiredRole) return <Navigate to="/dashboard" />;
   return children;
 }
 
+// ─── App ────────────────────────────────────────────────────────────────────
 function App() {
-  const setUser = authStore((state) => state.setUser);
-  const user = authStore((state) => state.user);
-  const token = authStore((state) => state.token);
+  const { setUser, user, token } = authStore((state) => ({
+    setUser: state.setUser,
+    user: state.user,
+    token: state.token,
+  }));
 
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     const initAuth = async () => {
-      // If we have a token but no user, try to fetch the user
       if (token && !user) {
         try {
           const response = await authAPI.getMe();
           setUser(response.data.user);
         } catch (error) {
           console.error('Error fetching user:', error);
-          // If fetch fails (e.g. token expired), we might want to clear token
-          // localStorage.removeItem('token'); // Optional: decided by auth logic
         }
       }
-      // Finished initialization attempt
       setIsInitializing(false);
     };
-
     initAuth();
   }, [token, user, setUser]);
 
-  if (isInitializing) {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>;
-  }
-
-  // Redirect based on role
-  if (user && token) {
-    const redirectPath = () => {
-      switch (user.role) {
-        case 'admin':
-          return '/admin/dashboard';
-        case 'dealer':
-          return '/dealer/dashboard';
-        case 'franchisee':
-          return '/franchisee/dashboard';
-        case 'dealerManager':
-          return '/dealer-manager/dashboard';
-        case 'franchiseeManager':
-          return '/franchisee-manager/dashboard';
-        default:
-          return '/login';
-      }
-    };
-
-    return (
-      <>
-        <Router>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-
-            {/* Candidate Portal Routes */}
-            <Route path="/candidate-login" element={<CandidateLogin />} />
-            <Route
-              path="/candidate-portal/*"
-              element={
-                <CandidateLayout />
-              }
-            >
-              <Route path="dashboard" element={<CandidateDashboard />} />
-              <Route path="test" element={<CandidateTest />} />
-              <Route path="complete-application" element={<CandidateCompleteApplication />} />
-              <Route path="" element={<Navigate to="test" />} />
-            </Route>
-
-            {/* Admin Routes */}
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              {/* Dashboard section */}
-              <Route path="dashboard" element={<AdminInventoryDashboard />} />
-              <Route path="dashboard/inventory" element={<AdminInventoryDashboard />} />
-              <Route path="dashboard/delivery" element={<AdminDeliveryDashboard />} />
-              <Route path="dashboard/installer" element={<AdminInstallerDashboard />} />
-              <Route path="dashboard/orders" element={<AdminOrdersDashboard />} />
-              <Route path="dashboard/orders-by-loan" element={<AdminOrdersByLoanDashboard />} />
-              <Route path="dashboard/vendors" element={<AdminVendorsDashboard />} />
-              <Route path="dashboard/project-report" element={<AdminProjectReport />} />
-
-              {/* User Performance sub-dashboards */}
-              <Route
-                path="dashboard/user-performance/partner-manager"
-                element={<FranchiseManagerDashboard />}
-              />
-              <Route
-                path="dashboard/user-performance/partner"
-                element={<FranchisePerformanceDashboard />}
-              />
-              <Route
-                path="dashboard/user-performance/dealer-manager"
-                element={<DealerManagerPerformanceDashboard />}
-              />
-              <Route
-                path="dashboard/user-performance/dealer"
-                element={<DealerPerformanceDashboard />}
-              />
-
-              <Route path="departments" element={<AdminDepartments />} />
-              <Route
-                path="departments/organization-chart"
-                element={<AdminOrganizationChart />}
-              />
-              <Route path="approvals" element={<AdminApprovals />} />
-              <Route path="project-management/:entityType/management" element={<ManagementProjects />} />
-              <Route path="project-management/:entityType/install" element={<InstallProjects />} />
-              <Route path="project-management/:entityType/service" element={<ServiceProjects />} />
-              <Route path="project-management/:entityType/track-service" element={<TrackServiceProjects />} />
-              <Route path="residential-project" element={<AdminResidentialProject />} />
-              <Route path="commercial-project" element={<AdminCommercialProject />} />
-              <Route path="project-management" element={<Navigate to="company/management" />} />
-              <Route path="operations/warehouse" element={<AdminWarehouse />} />
-              <Route path="operations/add-inventory" element={<AdminAddInventory />} />
-              <Route
-                path="operations/inventory-management"
-                element={<AdminInventoryManagement />}
-              />
-
-{/* LEADS ROUTES */}
-
-<Route
-  path="leads"
-  element={<LeadsPage />}
-/>
-
-<Route
-  path="leads/my-leads"
-  element={<MyLeads />}
-/>
-
-<Route
-  path="leads/assigned"
-  element={<AssignedLeads />}
-/>
-
-<Route
-  path="leads/upload"
-  element={<UploadPage />}
-/>
-
-<Route
-  path="leads/analytics"
-  element={<AnalyticsPage />}
-/>
-
-<Route
-  path="leads/project/:type"
-  element={<ProjectWise />}
-/>
-
-<Route
-  path="leads/:id"
-  element={<LeadDetails />}
-/>
-
-
-              {/* Settings section */}
-              {/* Location Settings */}
-              <Route path="settings/location/setup-locations" element={<SetupLocations />} />
-
-              {/* HR Settings */}
-              <Route path="settings/hr/role-settings" element={<RoleSettings />} />
-              <Route path="settings/hr/create-department" element={<CreateDepartment />} />
-              <Route path="settings/hr/manage-employees" element={<ManageEmployees />} />
-              <Route path="settings/hr/manage-modules" element={<ManageModules />} />
-              <Route path="settings/hr/department-wise-modules" element={<DepartmentWiseModules />} />
-              <Route path="settings/hr/temporary-incharge-setting" element={<TemporaryInchargeSetting />} />
-              <Route path="settings/hr/leave-approvals" element={<LeaveApprovals />} />
-              <Route path="settings/hr/resign-approvals" element={<ResignApprovals />} />
-
-              {/* Vendor Settings */}
-              <Route path="settings/vendor/installer-vendors" element={<InstallerVendors />} />
-              <Route path="settings/vendor/supplier-type" element={<SupplierType />} />
-              <Route path="settings/vendor/supplier-vendors" element={<SupplierVendors />} />
-
-              {/* Sales Settings */}
-              <Route path="settings/sales/set-price" element={<SetPrice />} />
-              <Route path="settings/sales/set-price-amc" element={<SetPriceAmc />} />
-              <Route path="settings/sales/offers" element={<Offers />} />
-              <Route path="settings/sales/solar-panel-bundle-setting" element={<SolarPanelBundleSetting />} />
-
-              {/* Marketing Settings */}
-              <Route path="settings/marketing/campaign-management" element={<CampaignManagement />} />
-
-              {/* Delivery Settings */}
-              <Route path="settings/delivery/delivery-type" element={<DeliveryType />} />
-              <Route path="settings/delivery/delivery_type" element={<DeliveryType />} />
-              <Route path="settings/delivery/vehicle-selection" element={<VehicleSelection />} />
-              <Route path="settings/delivery/vehicle_selection" element={<VehicleSelection />} />
-              <Route path="settings/delivery/vendor-delivery-plan" element={<VendorDeliveryPlan />} />
-              <Route path="settings/delivery/vendor_delivery_plan" element={<VendorDeliveryPlan />} />
-
-
-
-              {/* Installer Settings */}
-              <Route path="settings/installer/solar-installer" element={<SolarInstaller />} />
-              <Route path="settings/installer/tool-requirements" element={<ToolRequirements />} />
-              <Route path="settings/installer/rating-setting" element={<RatingSetting />} />
-              <Route path="settings/installer/agency" element={<Agency />} />
-              <Route path="settings/installer/agency-plans" element={<AgencyPlan />} />
-
-
-              {/* Inventory Settings */}
-              <Route path="settings/inventory/inventory-overview" element={<InventoryOverview />} />
-              <Route path="settings/inventory/restock-order-limit" element={<RestockOrderLimit />} />
-              <Route path="settings/inventory/combokit-brand-overview" element={<CombokitBrandOverview />} />
-
-              {/* Product Settings */}
-              <Route path="settings/product/add-project-type" element={<AddProjectType />} />
-              <Route path="settings/product/project-description" element={<AddProjectDescription />} />
-              <Route path="settings/product/add-project-category" element={<AddProjectCategory />} />
-              <Route path="settings/product/add-product" element={<AddProduct />} />
-              <Route path="settings/product/sku" element={<Sku />} />
-              <Route path="settings/product/price-master" element={<PriceMaster />} />
-              <Route path="settings/product/add-unit-management" element={<AddUnitManagement />} />
-
-              {/* Brand Settings */}
-              <Route path="operations/brand/add-brand-manufacturer" element={<AddBrandManufacturer />} />
-              <Route path="operations/brand/supplier-overview" element={<SupplierOverview />} />
-
-              {/* ComboKit Settings */}
-              <Route path="settings/combokit/create-solarkit" element={<CreateSolarkit />} />
-              <Route path="settings/combokit/create-amc" element={<CreateAmc />} />
-              <Route path="settings/combokit/amc-services" element={<AmcServices />} />
-              <Route path="settings/combokit/bundle-plans" element={<BundlePlans />} />
-              <Route path="settings/combokit/add-combokit" element={<AddComboKit />} />
-              <Route path="settings/combokit/customize" element={<Customize />} />
-
-              {/* ComboKit Overview Settings */}
-              <Route path="settings/combokit-overview" element={<CombokitOverview />} />
-
-              {/* Order Procurement Settings */}
-              <Route path="settings/order-procurement" element={<OrderProcurement />} />
-
-              {/* Partner Settings (Unified) */}
-              <Route path="settings/partner/add-partner" element={<AddPartner />} />
-              <Route path="settings/partner/plans" element={<PartnerPlans />} />
-              <Route path="settings/partner/points-rewards" element={<PartnerPointsRewards />} />
-              <Route path="settings/partner/onboarding-goals" element={<PartnerOnboardingGoals />} />
-              <Route path="settings/partner/profession-type" element={<PartnerProfessionType />} />
-
-              {/* HRMS Settings */}
-              <Route path="settings/hrms/settings" element={<HrmsSettings />} />
-              <Route path="settings/hrms/candidates" element={<CandidateList />} />
-              <Route path="settings/hrms/candidate-test-setting" element={<CandidateTestSetting />} />
-              <Route path="settings/hrms/candidate-training-setting" element={<CandidateTrainingSetting />} />
-              <Route path="settings/hrms/vacancy-module" element={<VacancySetting />} />
-
-              {/* Project Settings */}
-              <Route path="settings/project/journey-stage-setting" element={<JourneyStageSetting />} />
-              <Route path="settings/project/overdue-setting" element={<ProjectOverdueSetting />} />
-              <Route path="settings/project/configuration-setting" element={<ConfigurationSetting />} />
-              <Route path="settings/project/documentation-setting" element={<DocumentationSetting />} />
-              <Route path="settings/project/placeholder-name-setting" element={<PlaceholderNameSetting />} />
-
-              {/* Quote Settings */}
-              <Route path="settings/quote/quote-setting" element={<QuoteSetting />} />
-              <Route path="settings/quote/survey-bom-setting" element={<SurveyBomSetting />} />
-              <Route path="settings/quote/terrace-setting" element={<TerraceSetting />} />
-              <Route path="settings/quote/structure-setting" element={<StructureSetting />} />
-              <Route path="settings/quote/building-setting" element={<BuildingSetting />} />
-              <Route path="settings/quote/discom-master" element={<DiscomMaster />} />
-
-              {/* New Main Settings Sections (at the bottom) */}
-              <Route path="settings/approval-overdue" element={<ApprovalOverdueSetting />} />
-              <Route path="settings/overdue-task" element={<OverdueTaskSetting />} />
-              <Route path="settings/overdue-status" element={<OverdueStatusSetting />} />
-              <Route path="settings/partner-manager" element={<FranchiseeManagerSetting />} />
-              <Route path="settings/partner-buy-lead" element={<FranchiseBuyLeadSetting />} />
-              <Route path="settings/loan" element={<LoanSetting />} />
-              <Route path="settings/checklist" element={<ChecklistSetting />} />
-              <Route path="settings/forms" element={<FormBuilderList />} />
-              <Route path="settings/forms/:id/edit" element={<FormBuilderEditor />} />
-              <Route path="settings/forms/:id/preview" element={<FormBuilderPreview />} />
-              <Route path="settings/forms/:id/submissions" element={<FormSubmissionsViewer />} />
-              <Route path="reports/financial-pl" element={<AdminFinancialPLReport />} />
-              <Route path="reports/cashflow" element={<AdminCashflowReport />} />
-              <Route path="reports/inventory" element={<AdminInventoryReport />} />
-              <Route path="reports/loans-summary" element={<AdminLoansSummaryReport />} />
-              <Route path="reports/captable" element={<AdminCaptableReport />} />
-              <Route
-                path="reports/revenue-by-cp-types"
-                element={<AdminRevenueByCPTypesReport />}
-              />     
-              <Route path="reports/cluster" element={<AdminClusterReport />} />
-              <Route path="reports/district" element={<AdminDistrictReport />} />
-              <Route path="reports/city" element={<AdminCityReport />} />
-            </Route>
-
-            {/* Dealer Routes */}
-            <Route
-              path="/dealer/*"
-              element={
-                <ProtectedRoute requiredRole="dealer">
-                  <DealerLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="dashboard" element={<DealerDashboard />} />
-
-              {/* Project Signup */}
-              <Route path="project-signup/lead" element={<Lead />} />
-              <Route path="project-signup/survey-bom" element={<SurveyBOM />} />
-              <Route path="project-signup/project-quote" element={<ProjectQuote />} />
-              <Route path="project-signup/project-signup" element={<ProjectSignupPage />} />
-              <Route path="project-signup" element={<Navigate to="project-signup/lead" />} />
-
-              {/* Project Management */}
-              <Route path="project-management/manage" element={<Manage />} />
-              <Route path="project-management/track" element={<TrackPM />} />
-              <Route path="residential-project" element={<DealerResidentialProject />} />
-              <Route path="commercial-project" element={<DealerCommercialProject />} />
-              <Route path="project-management" element={<Navigate to="project-management/manage" />} />
-
-              {/* Track */}
-              <Route path="track/project-progress" element={<ProjectProgress />} />
-              <Route path="track/my-commission" element={<MyCommission />} />
-              <Route path="track" element={<Navigate to="track/project-progress" />} />
-
-              {/* Tickets */}
-              <Route path="tickets/raise-ticket" element={<RaiseTicket />} />
-              <Route path="tickets/ticket-status" element={<TicketStatus />} />
-              <Route path="tickets" element={<Navigate to="tickets/raise-ticket" />} />
-
-              <Route path="solar-kit" element={<SolarKit />} />
-              <Route path="loan" element={<Loan />} />
-              <Route path="reports" element={<Reports />} />
-            </Route>
-
-            {/* Franchisee Routes */}
-            <Route
-              path="/franchisee/*"
-              element={
-                <ProtectedRoute requiredRole="franchisee">
-                  <FranchiseeLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="dashboard" element={<FranchiseDashboard />} />
-              <Route path="dashboard/lead-assign" element={<LeadAssignDashboard />} />
-
-              <Route path="survey-bom" element={<SurveyBom />} />
-              <Route path="district-manager" element={<DistrictManager />} />
-              <Route path="dealer-manager" element={<DealerManager />} />
-              <Route path="lead-partner/create" element={<CreateLeadPartner />} />
-              <Route path="lead-partner/management" element={<LeadManagement />} />
-
-              <Route path="my-team" element={<MyTeam />} />
-
-              <Route path="account/track-payments" element={<TrackPayments />} />
-
-              <Route path="solarkits" element={<Solarkits />} />
-              <Route path="solarkits/bulk-order" element={<BulkOrder />} />
-
-              <Route path="settings" element={<Settings />} />
-
-              <Route path="project-signup/lead" element={<FranchiseeLead />} />
-              <Route path="project-signup/create-quotation" element={<FranchiseeCreateQuotation />} />
-              <Route path="project-signup/project-signup" element={<FranchiseeProjectSignup />} />
-              <Route path="project-signup/loan" element={<FranchiseeLoan />} />
-
-              <Route path="project-management/management" element={<FranchiseeManagement />} />
-              <Route path="project-management/install" element={<FranchiseeInstall />} />
-              <Route path="project-management/service" element={<FranchiseeService />} />
-              <Route path="project-management/track-service" element={<FranchiseeTrackService />} />
-            </Route>
-
-            {/* Dealer Manager Routes */}
-            <Route
-              path="/dealer-manager/*"
-              element={
-                <ProtectedRoute requiredRole="dealerManager">
-                  <DealerManagerLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="dashboard" element={<DealerManagerDashboard />} />
-              <Route path="leads" element={<DealerManagerLeads />} />
-              <Route path="onboarding/company-lead" element={<DealerManagerOnboardingCompanyLead />} />
-              <Route path="onboarding/my-lead" element={<DealerManagerMyLeads />} />
-              <Route path="onboarding/sub-leads/:id" element={<DealerManagerSubLeads />} />
-
-              <Route path="my-task/app-demo" element={<DealerManagerAppDemo />} />
-
-              {/* Dealer Onboarding Sub-menu */}
-              <Route path="my-task/dealer-onboarding/dealer-signup" element={<DealerManagerDealerSignup />} />
-              <Route path="my-task/dealer-onboarding/dealer-orientation" element={<DealerManagerDealerOrientation />} />
-              <Route path="orientation/video" element={<DealerManagerOrientationVideo />} />
-              <Route path="my-task/dealer-onboarding" element={<Navigate to="dealer-signup" />} />
-
-              {/* Project Management Sub-menu */}
-              <Route path="my-task/project-management/project-in-progress" element={<DealerManagerProjectInProgress />} />
-              <Route path="my-task/project-management/completed-projects" element={<DealerManagerCompletedProjects />} />
-              <Route path="my-task/project-management" element={<Navigate to="project-in-progress" />} />
-
-              <Route path="my-task/dealer-performance" element={<DealerManagerDealerPerformance />} />
-              <Route path="my-task/dealer-performance/:type" element={<DealerManagerDealerPerformanceList />} />
-              <Route path="my-task" element={<Navigate to="app-demo" />} />
-
-              <Route path="onboarding-goals" element={<DealerManagerOnboardingGoals />} />
-
-              {/* Tickets */}
-              <Route path="tickets/service" element={<DealerManagerServiceTicket />} />
-              <Route path="tickets/dispute" element={<DealerManagerDisputeTicket />} />
-              <Route path="tickets" element={<Navigate to="service" />} />
-
-              <Route path="report" element={<DealerManagerReport />} />
-              <Route path="" element={<Navigate to="dashboard" />} />
-            </Route>
-
-            {/* Franchisee Manager Routes */}
-            <Route
-              path="/franchisee-manager/*"
-              element={
-                <ProtectedRoute requiredRole="franchiseeManager">
-                  <FranchiseeManagerLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="dashboard" element={<FranchiseeManagerDashboard />} />
-              <Route path="leads" element={<FranchiseeManagerLeads />} />
-              <Route path="lead-management" element={<FranchiseeManagerLeadManagement />} />
-
-              <Route path="onboarding-goals" element={<FranchiseeManagerOnboardingGoals />} />
-
-              {/* My Task Sub-menu */}
-              <Route path="my-task/app-demo" element={<FMAppDemo />} />
-              <Route path="my-task/franchisee-onboarding/franchisee-signup" element={<FMFranchiseeSignup />} />
-              <Route path="my-task/franchisee-onboarding/franchisee-orientation" element={<FMFranchiseeOrientation />} />
-              <Route path="my-task/franchisee-onboarding" element={<Navigate to="franchisee-signup" />} />
-              <Route path="my-task/project-management/project-in-progress" element={<FMProjectInProgress />} />
-              <Route path="my-task/project-management" element={<Navigate to="project-in-progress" />} />
-              <Route path="my-task/franchisee-performance" element={<FMFranchiseePerformance />} />
-              <Route path="my-task" element={<Navigate to="app-demo" />} />
-
-              {/* Franchise Setting Sub-menu */}
-              <Route path="franchisee-setting/combokit-customization" element={<FMComboKitCustomization />} />
-              <Route path="franchisee-setting/offers" element={<FMOffers />} />
-              <Route path="franchisee-setting/track-cashback" element={<FMTrackCashback />} />
-              <Route path="franchisee-setting" element={<Navigate to="combokit-customization" />} />
-
-              {/* Dealer Management Sub-menu */}
-              <Route path="dealer-management/assign-to-franchisee" element={<FMAssignToFranchisee />} />
-              <Route path="dealer-management/track-dealer" element={<FMTrackDealer />} />
-              <Route path="dealer-management/reasign-to-company" element={<FMReassignToCompany />} />
-              <Route path="dealer-management" element={<Navigate to="assign-to-franchisee" />} />
-
-              {/* Tickets */}
-              <Route path="tickets/service" element={<FMServiceTicket />} />
-              <Route path="tickets/dispute" element={<FMDisputeTicket />} />
-              <Route path="tickets" element={<Navigate to="service" />} />
-
-              <Route path="find-resources" element={<FranchiseeManagerFindResources />} />
-              <Route path="report" element={<FranchiseeManagerReport />} />
-
-              <Route path="" element={<Navigate to="dashboard" />} />
-            </Route>
-
-            {/* Employee Routes */}
-            <Route
-              path="/employee/*"
-              element={
-                <ProtectedRoute requiredRole="employee">
-                  {/* A simple wrapper or straight rendering if we had an EmployeeLayout. For now we just route inline. */}
-                  <Routes>
-                    <Route path="training" element={<OnboardingTraining />} />
-                    {/* Add an employee dashboard catch-all later, for now just redirect to root or show a placeholder */}
-                    <Route path="dashboard" element={<div className="p-8 text-center text-xl font-bold">Employee Dashboard Integration Pending...</div>} />
-                    <Route path="" element={<Navigate to="training" />} />
-                  </Routes>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route path="/" element={<Navigate to={redirectPath()} />} />
-            <Route path="/dashboard" element={<Navigate to={redirectPath()} />} />
-          </Routes>
-        </Router>
-        <GlobalLoader />
-      </>
-    );
-  }
+  if (isInitializing) return <PageLoader />;
+
+  const redirectPath = () => {
+    if (!user) return '/login';
+    switch (user.role) {
+      case 'admin':            return '/admin/dashboard';
+      case 'dealer':           return '/dealer/dashboard';
+      case 'franchisee':       return '/franchisee/dashboard';
+      case 'dealerManager':    return '/dealer-manager/dashboard';
+      case 'franchiseeManager': return '/franchisee-manager/dashboard';
+      default:                 return '/login';
+    }
+  };
+
+  // ─── Candidate routes (public, shared in both states) ──────────────────
+  const candidateRoutes = (
+    <Route path="/candidate-portal/*" element={
+      <Suspense fallback={<PageLoader />}><CandidateLayout /></Suspense>
+    }>
+      <Route path="dashboard"            element={<Suspense fallback={<PageLoader />}><CandidateDashboard /></Suspense>} />
+      <Route path="test"                 element={<Suspense fallback={<PageLoader />}><CandidateTest /></Suspense>} />
+      <Route path="complete-application" element={<Suspense fallback={<PageLoader />}><CandidateCompleteApplication /></Suspense>} />
+      <Route path=""                     element={<Navigate to="test" />} />
+    </Route>
+  );
 
   return (
     <>
       <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/candidate-login" element={<CandidateLogin />} />
-          <Route path="/employee-login" element={<EmployeeLogin />} />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* ── Public routes ── */}
+            <Route path="/login"          element={<Login />} />
+            <Route path="/employee-login" element={<EmployeeLogin />} />
+            <Route path="/candidate-login" element={<CandidateLogin />} />
+            {candidateRoutes}
 
-          <Route path="/candidate-portal/*" element={<CandidateLayout />}>
-            <Route path="dashboard" element={<CandidateDashboard />} />
-            <Route path="test" element={<CandidateTest />} />
-            <Route path="complete-application" element={<CandidateCompleteApplication />} />
-            <Route path="" element={<Navigate to="test" />} />
-          </Route>
+            {/* ── Admin ── */}
+            <Route path="/admin/*" element={
+              <ProtectedRoute requiredRole="admin"><AdminLayout /></ProtectedRoute>
+            }>
+              <Route path="dashboard"                        element={<AdminInventoryDashboard />} />
+              <Route path="dashboard/inventory"              element={<AdminInventoryDashboard />} />
+              <Route path="dashboard/delivery"               element={<AdminDeliveryDashboard />} />
+              <Route path="dashboard/installer"              element={<AdminInstallerDashboard />} />
+              <Route path="dashboard/orders"                 element={<AdminOrdersDashboard />} />
+              <Route path="dashboard/orders-by-loan"         element={<AdminOrdersByLoanDashboard />} />
+              <Route path="dashboard/vendors"                element={<AdminVendorsDashboard />} />
+              <Route path="dashboard/project-report"         element={<AdminProjectReport />} />
+              <Route path="dashboard/user-performance/partner-manager" element={<FranchiseManagerDashboard />} />
+              <Route path="dashboard/user-performance/partner"         element={<FranchisePerformanceDashboard />} />
+              <Route path="dashboard/user-performance/dealer-manager"  element={<DealerManagerPerformanceDashboard />} />
+              <Route path="dashboard/user-performance/dealer"          element={<DealerPerformanceDashboard />} />
+              <Route path="departments"                      element={<AdminDepartments />} />
+              <Route path="departments/organization-chart"   element={<AdminOrganizationChart />} />
+              <Route path="approvals"                        element={<AdminApprovals />} />
+              <Route path="project-management/:entityType/management"   element={<ManagementProjects />} />
+              <Route path="project-management/:entityType/install"      element={<InstallProjects />} />
+              <Route path="project-management/:entityType/service"      element={<ServiceProjects />} />
+              <Route path="project-management/:entityType/track-service" element={<TrackServiceProjects />} />
+              <Route path="residential-project"              element={<AdminResidentialProject />} />
+              <Route path="commercial-project"               element={<AdminCommercialProject />} />
+              <Route path="project-management"               element={<Navigate to="company/management" />} />
+              <Route path="operations/warehouse"             element={<AdminWarehouse />} />
+              <Route path="operations/add-inventory"         element={<AdminAddInventory />} />
+              <Route path="operations/inventory-management"  element={<AdminInventoryManagement />} />
+              {/* Leads */}
+              <Route path="leads"               element={<LeadsPage />} />
+              <Route path="leads/my-leads"      element={<MyLeads />} />
+              <Route path="leads/assigned"      element={<AssignedLeads />} />
+              <Route path="leads/upload"        element={<UploadPage />} />
+              <Route path="leads/analytics"     element={<AnalyticsPage />} />
+              <Route path="leads/project/:type" element={<ProjectWise />} />
+              <Route path="leads/:id"           element={<LeadDetails />} />
+              {/* Settings */}
+              <Route path="settings/location/setup-locations"            element={<SetupLocations />} />
+              <Route path="settings/hr/role-settings"                    element={<RoleSettings />} />
+              <Route path="settings/hr/create-department"                element={<CreateDepartment />} />
+              <Route path="settings/hr/manage-employees"                 element={<ManageEmployees />} />
+              <Route path="settings/hr/manage-modules"                   element={<ManageModules />} />
+              <Route path="settings/hr/department-wise-modules"          element={<DepartmentWiseModules />} />
+              <Route path="settings/hr/temporary-incharge-setting"       element={<TemporaryInchargeSetting />} />
+              <Route path="settings/hr/leave-approvals"                  element={<LeaveApprovals />} />
+              <Route path="settings/hr/resign-approvals"                 element={<ResignApprovals />} />
+              <Route path="settings/vendor/installer-vendors"            element={<InstallerVendors />} />
+              <Route path="settings/vendor/supplier-type"                element={<SupplierType />} />
+              <Route path="settings/vendor/supplier-vendors"             element={<SupplierVendors />} />
+              <Route path="settings/sales/set-price"                     element={<SetPrice />} />
+              <Route path="settings/sales/set-price-amc"                 element={<SetPriceAmc />} />
+              <Route path="settings/sales/offers"                        element={<Offers />} />
+              <Route path="settings/sales/solar-panel-bundle-setting"    element={<SolarPanelBundleSetting />} />
+              <Route path="settings/marketing/campaign-management"       element={<CampaignManagement />} />
+              <Route path="settings/delivery/delivery-type"              element={<DeliveryType />} />
+              <Route path="settings/delivery/delivery_type"              element={<DeliveryType />} />
+              <Route path="settings/delivery/vehicle-selection"          element={<VehicleSelection />} />
+              <Route path="settings/delivery/vehicle_selection"          element={<VehicleSelection />} />
+              <Route path="settings/delivery/vendor-delivery-plan"       element={<VendorDeliveryPlan />} />
+              <Route path="settings/delivery/vendor_delivery_plan"       element={<VendorDeliveryPlan />} />
+              <Route path="settings/installer/solar-installer"           element={<SolarInstaller />} />
+              <Route path="settings/installer/tool-requirements"         element={<ToolRequirements />} />
+              <Route path="settings/installer/rating-setting"            element={<RatingSetting />} />
+              <Route path="settings/installer/agency"                    element={<Agency />} />
+              <Route path="settings/installer/agency-plans"              element={<AgencyPlan />} />
+              <Route path="settings/inventory/inventory-overview"        element={<InventoryOverview />} />
+              <Route path="settings/inventory/restock-order-limit"       element={<RestockOrderLimit />} />
+              <Route path="settings/inventory/combokit-brand-overview"   element={<CombokitBrandOverview />} />
+              <Route path="settings/product/add-project-type"            element={<AddProjectType />} />
+              <Route path="settings/product/project-description"         element={<AddProjectDescription />} />
+              <Route path="settings/product/add-project-category"        element={<AddProjectCategory />} />
+              <Route path="settings/product/add-product"                 element={<AddProduct />} />
+              <Route path="settings/product/sku"                         element={<Sku />} />
+              <Route path="settings/product/price-master"                element={<PriceMaster />} />
+              <Route path="settings/product/add-unit-management"         element={<AddUnitManagement />} />
+              <Route path="operations/brand/add-brand-manufacturer"      element={<AddBrandManufacturer />} />
+              <Route path="operations/brand/supplier-overview"           element={<SupplierOverview />} />
+              <Route path="settings/combokit/create-solarkit"            element={<CreateSolarkit />} />
+              <Route path="settings/combokit/create-amc"                 element={<CreateAmc />} />
+              <Route path="settings/combokit/amc-services"               element={<AmcServices />} />
+              <Route path="settings/combokit/bundle-plans"               element={<BundlePlans />} />
+              <Route path="settings/combokit/add-combokit"               element={<AddComboKit />} />
+              <Route path="settings/combokit/customize"                  element={<Customize />} />
+              <Route path="settings/combokit-overview"                   element={<CombokitOverview />} />
+              <Route path="settings/order-procurement"                   element={<OrderProcurement />} />
+              <Route path="settings/partner/add-partner"                 element={<AddPartner />} />
+              <Route path="settings/partner/plans"                       element={<PartnerPlans />} />
+              <Route path="settings/partner/points-rewards"              element={<PartnerPointsRewards />} />
+              <Route path="settings/partner/onboarding-goals"            element={<PartnerOnboardingGoals />} />
+              <Route path="settings/partner/profession-type"             element={<PartnerProfessionType />} />
+              <Route path="settings/hrms/settings"                       element={<HrmsSettings />} />
+              <Route path="settings/hrms/candidates"                     element={<CandidateList />} />
+              <Route path="settings/hrms/candidate-test-setting"         element={<CandidateTestSetting />} />
+              <Route path="settings/hrms/candidate-training-setting"     element={<CandidateTrainingSetting />} />
+              <Route path="settings/hrms/vacancy-module"                 element={<VacancySetting />} />
+              <Route path="settings/project/journey-stage-setting"       element={<JourneyStageSetting />} />
+              <Route path="settings/project/overdue-setting"             element={<ProjectOverdueSetting />} />
+              <Route path="settings/project/configuration-setting"       element={<ConfigurationSetting />} />
+              <Route path="settings/project/documentation-setting"       element={<DocumentationSetting />} />
+              <Route path="settings/project/placeholder-name-setting"    element={<PlaceholderNameSetting />} />
+              <Route path="settings/quote/quote-setting"                 element={<QuoteSetting />} />
+              <Route path="settings/quote/survey-bom-setting"            element={<SurveyBomSetting />} />
+              <Route path="settings/quote/terrace-setting"               element={<TerraceSetting />} />
+              <Route path="settings/quote/structure-setting"             element={<StructureSetting />} />
+              <Route path="settings/quote/building-setting"              element={<BuildingSetting />} />
+              <Route path="settings/quote/discom-master"                 element={<DiscomMaster />} />
+              <Route path="settings/approval-overdue"                    element={<ApprovalOverdueSetting />} />
+              <Route path="settings/overdue-task"                        element={<OverdueTaskSetting />} />
+              <Route path="settings/overdue-status"                      element={<OverdueStatusSetting />} />
+              <Route path="settings/partner-manager"                     element={<FranchiseeManagerSetting />} />
+              <Route path="settings/partner-buy-lead"                    element={<FranchiseBuyLeadSetting />} />
+              <Route path="settings/loan"                                element={<LoanSetting />} />
+              <Route path="settings/checklist"                           element={<ChecklistSetting />} />
+              <Route path="settings/forms"                               element={<FormBuilderList />} />
+              <Route path="settings/forms/:id/edit"                      element={<FormBuilderEditor />} />
+              <Route path="settings/forms/:id/preview"                   element={<FormBuilderPreview />} />
+              <Route path="settings/forms/:id/submissions"               element={<FormSubmissionsViewer />} />
+              {/* Reports */}
+              <Route path="reports/financial-pl"       element={<AdminFinancialPLReport />} />
+              <Route path="reports/cashflow"           element={<AdminCashflowReport />} />
+              <Route path="reports/inventory"          element={<AdminInventoryReport />} />
+              <Route path="reports/loans-summary"      element={<AdminLoansSummaryReport />} />
+              <Route path="reports/captable"           element={<AdminCaptableReport />} />
+              <Route path="reports/revenue-by-cp-types" element={<AdminRevenueByCPTypesReport />} />
+              <Route path="reports/cluster"            element={<AdminClusterReport />} />
+              <Route path="reports/district"           element={<AdminDistrictReport />} />
+              <Route path="reports/city"               element={<AdminCityReport />} />
+            </Route>
 
-          <Route path="*" element={<Navigate to="/login" />} />
-        </Routes>
+            {/* ── Dealer ── */}
+            <Route path="/dealer/*" element={
+              <ProtectedRoute requiredRole="dealer"><DealerLayout /></ProtectedRoute>
+            }>
+              <Route path="dashboard"                              element={<DealerDashboard />} />
+              <Route path="project-signup/lead"                    element={<Lead />} />
+              <Route path="project-signup/survey-bom"              element={<SurveyBOM />} />
+              <Route path="project-signup/project-quote"           element={<ProjectQuote />} />
+              <Route path="project-signup/project-signup"          element={<ProjectSignupPage />} />
+              <Route path="project-signup"                         element={<Navigate to="project-signup/lead" />} />
+              <Route path="project-management/manage"              element={<Manage />} />
+              <Route path="project-management/track"               element={<TrackPM />} />
+              <Route path="residential-project"                    element={<DealerResidentialProject />} />
+              <Route path="commercial-project"                     element={<DealerCommercialProject />} />
+              <Route path="project-management"                     element={<Navigate to="project-management/manage" />} />
+              <Route path="track/project-progress"                 element={<ProjectProgress />} />
+              <Route path="track/my-commission"                    element={<MyCommission />} />
+              <Route path="track"                                  element={<Navigate to="track/project-progress" />} />
+              <Route path="tickets/raise-ticket"                   element={<RaiseTicket />} />
+              <Route path="tickets/ticket-status"                  element={<TicketStatus />} />
+              <Route path="tickets"                                element={<Navigate to="tickets/raise-ticket" />} />
+              <Route path="solar-kit"                              element={<SolarKit />} />
+              <Route path="loan"                                   element={<Loan />} />
+              <Route path="reports"                                element={<Reports />} />
+            </Route>
+
+            {/* ── Franchisee ── */}
+            <Route path="/franchisee/*" element={
+              <ProtectedRoute requiredRole="franchisee"><FranchiseeLayout /></ProtectedRoute>
+            }>
+              <Route path="dashboard"                        element={<FranchiseDashboard />} />
+              <Route path="dashboard/lead-assign"            element={<LeadAssignDashboard />} />
+              <Route path="survey-bom"                       element={<SurveyBom />} />
+              <Route path="district-manager"                 element={<DistrictManager />} />
+              <Route path="dealer-manager"                   element={<DealerManager />} />
+              <Route path="lead-partner/create"              element={<CreateLeadPartner />} />
+              <Route path="lead-partner/management"          element={<LeadManagement />} />
+              <Route path="my-team"                          element={<MyTeam />} />
+              <Route path="account/track-payments"           element={<TrackPayments />} />
+              <Route path="solarkits"                        element={<Solarkits />} />
+              <Route path="solarkits/bulk-order"             element={<BulkOrder />} />
+              <Route path="settings"                         element={<Settings />} />
+              <Route path="project-signup/lead"              element={<FranchiseeLead />} />
+              <Route path="project-signup/create-quotation"  element={<FranchiseeCreateQuotation />} />
+              <Route path="project-signup/project-signup"    element={<FranchiseeProjectSignup />} />
+              <Route path="project-signup/loan"              element={<FranchiseeLoan />} />
+              <Route path="project-management/management"    element={<FranchiseeManagement />} />
+              <Route path="project-management/install"       element={<FranchiseeInstall />} />
+              <Route path="project-management/service"       element={<FranchiseeService />} />
+              <Route path="project-management/track-service" element={<FranchiseeTrackService />} />
+            </Route>
+
+            {/* ── Dealer Manager ── */}
+            <Route path="/dealer-manager/*" element={
+              <ProtectedRoute requiredRole="dealerManager"><DealerManagerLayout /></ProtectedRoute>
+            }>
+              <Route path="dashboard"                                          element={<DealerManagerDashboard />} />
+              <Route path="leads"                                              element={<DealerManagerLeads />} />
+              <Route path="onboarding/company-lead"                            element={<DealerManagerOnboardingCompanyLead />} />
+              <Route path="onboarding/my-lead"                                 element={<DealerManagerMyLeads />} />
+              <Route path="onboarding/sub-leads/:id"                           element={<DealerManagerSubLeads />} />
+              <Route path="my-task/app-demo"                                   element={<DealerManagerAppDemo />} />
+              <Route path="my-task/dealer-onboarding/dealer-signup"            element={<DealerManagerDealerSignup />} />
+              <Route path="my-task/dealer-onboarding/dealer-orientation"       element={<DealerManagerDealerOrientation />} />
+              <Route path="orientation/video"                                  element={<DealerManagerOrientationVideo />} />
+              <Route path="my-task/dealer-onboarding"                          element={<Navigate to="dealer-signup" />} />
+              <Route path="my-task/project-management/project-in-progress"     element={<DealerManagerProjectInProgress />} />
+              <Route path="my-task/project-management/completed-projects"      element={<DealerManagerCompletedProjects />} />
+              <Route path="my-task/project-management"                         element={<Navigate to="project-in-progress" />} />
+              <Route path="my-task/dealer-performance"                         element={<DealerManagerDealerPerformance />} />
+              <Route path="my-task/dealer-performance/:type"                   element={<DealerManagerDealerPerformanceList />} />
+              <Route path="my-task"                                            element={<Navigate to="app-demo" />} />
+              <Route path="onboarding-goals"                                   element={<DealerManagerOnboardingGoals />} />
+              <Route path="tickets/service"                                    element={<DealerManagerServiceTicket />} />
+              <Route path="tickets/dispute"                                    element={<DealerManagerDisputeTicket />} />
+              <Route path="tickets"                                            element={<Navigate to="service" />} />
+              <Route path="report"                                             element={<DealerManagerReport />} />
+              <Route path=""                                                   element={<Navigate to="dashboard" />} />
+            </Route>
+
+            {/* ── Franchisee Manager ── */}
+            <Route path="/franchisee-manager/*" element={
+              <ProtectedRoute requiredRole="franchiseeManager"><FranchiseeManagerLayout /></ProtectedRoute>
+            }>
+              <Route path="dashboard"                                              element={<FranchiseeManagerDashboard />} />
+              <Route path="leads"                                                  element={<FranchiseeManagerLeads />} />
+              <Route path="lead-management"                                        element={<FranchiseeManagerLeadManagement />} />
+              <Route path="onboarding-goals"                                       element={<FranchiseeManagerOnboardingGoals />} />
+              <Route path="my-task/app-demo"                                       element={<FMAppDemo />} />
+              <Route path="my-task/franchisee-onboarding/franchisee-signup"        element={<FMFranchiseeSignup />} />
+              <Route path="my-task/franchisee-onboarding/franchisee-orientation"   element={<FMFranchiseeOrientation />} />
+              <Route path="my-task/franchisee-onboarding"                          element={<Navigate to="franchisee-signup" />} />
+              <Route path="my-task/project-management/project-in-progress"         element={<FMProjectInProgress />} />
+              <Route path="my-task/project-management"                             element={<Navigate to="project-in-progress" />} />
+              <Route path="my-task/franchisee-performance"                         element={<FMFranchiseePerformance />} />
+              <Route path="my-task"                                                element={<Navigate to="app-demo" />} />
+              <Route path="franchisee-setting/combokit-customization"              element={<FMComboKitCustomization />} />
+              <Route path="franchisee-setting/offers"                              element={<FMOffers />} />
+              <Route path="franchisee-setting/track-cashback"                      element={<FMTrackCashback />} />
+              <Route path="franchisee-setting"                                     element={<Navigate to="combokit-customization" />} />
+              <Route path="dealer-management/assign-to-franchisee"                 element={<FMAssignToFranchisee />} />
+              <Route path="dealer-management/track-dealer"                         element={<FMTrackDealer />} />
+              <Route path="dealer-management/reasign-to-company"                   element={<FMReassignToCompany />} />
+              <Route path="dealer-management"                                      element={<Navigate to="assign-to-franchisee" />} />
+              <Route path="tickets/service"                                        element={<FMServiceTicket />} />
+              <Route path="tickets/dispute"                                        element={<FMDisputeTicket />} />
+              <Route path="tickets"                                                element={<Navigate to="service" />} />
+              <Route path="find-resources"                                         element={<FranchiseeManagerFindResources />} />
+              <Route path="report"                                                 element={<FranchiseeManagerReport />} />
+              <Route path=""                                                       element={<Navigate to="dashboard" />} />
+            </Route>
+
+            {/* ── Employee ── */}
+            <Route path="/employee/*" element={
+              <ProtectedRoute requiredRole="employee">
+                <Routes>
+                  <Route path="training"  element={<Suspense fallback={<PageLoader />}><OnboardingTraining /></Suspense>} />
+                  <Route path="dashboard" element={<div className="p-8 text-center text-xl font-bold">Employee Dashboard Integration Pending...</div>} />
+                  <Route path=""          element={<Navigate to="training" />} />
+                </Routes>
+              </ProtectedRoute>
+            } />
+
+            {/* ── Redirects ── */}
+            <Route path="/"          element={<Navigate to={redirectPath()} />} />
+            <Route path="/dashboard" element={<Navigate to={redirectPath()} />} />
+            <Route path="*"          element={<Navigate to={redirectPath()} />} />
+          </Routes>
+        </Suspense>
       </Router>
       <GlobalLoader />
     </>
