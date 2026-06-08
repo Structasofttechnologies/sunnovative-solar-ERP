@@ -20,6 +20,9 @@ import EpcOrders         from '../pages/epc/orders/EpcOrders';
 import EpcMyTeam         from '../pages/epc/team/EpcMyTeam';
 import EpcAdminSettings  from '../pages/epc/settings/EpcAdminSettings';
 import EpcMyPlan         from '../pages/epc/plan/EpcMyPlan';
+import EpcOrderDetail from '../pages/epc/orders/EpcOrderDetail';
+import EpcProjectManagement from '../pages/epc/projects/EpcProjectManagement';
+import EpcProjectDetail from '../pages/epc/projects/EpcProjectDetail';
 
 const EpcRoutes = () => (
   <EpcAuthProvider>
@@ -38,8 +41,20 @@ const EpcRoutes = () => (
       >
         <Route index            element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<EpcDashboard />} />
+
+
         <Route path="enquiries" element={<EpcMyEnquiries />} />
+
+
         <Route path="orders"    element={<EpcOrders />} />
+
+   <Route path="orders/:id"       element={<EpcOrderDetail />} />
+
+
+    {/* Projects */}
+        <Route path="projects"         element={<EpcProjectManagement />} />
+        <Route path="projects/:id"     element={<EpcProjectDetail />} />
+
         <Route path="projects"  element={<EpcOrders />} />  {/* Placeholder — EpcProjectManagement alag banegi */}
         <Route path="team"      element={<EpcMyTeam />} />
         <Route path="settings"  element={<EpcAdminSettings />} />
