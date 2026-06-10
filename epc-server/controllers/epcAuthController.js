@@ -1,5 +1,6 @@
 const jwt        = require('jsonwebtoken');
 const EpcPartner = require('../models/EpcPartner');
+const EpcOrder=require('../models/EpcOrder');
 
 const generateToken = (id) =>
   jwt.sign({ id, type: 'epc' }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -82,7 +83,37 @@ const getEpcProfile = async (req, res) => {
   try {
     const epc = await EpcPartner.findById(req.epc._id).select('-password');
     if (!epc) return res.status(404).json({ message: 'EPC not found' });
-    res.json(epc);
+
+    // ── onTimeCompletionPercent calculate karo ──
+    let onTimePercent = epc.onTimeCompletionPercent || 0;
+    try {
+      const Order = require('../models/Order'); // tumhara Order model path
+      const completedOrders = await Order.find({
+        epcPartner: epc._id,
+        status: 'Completed',
+      }).select('installCompletedAt dueDateForCompletion');
+
+      if (completedOrders.length > 0) {
+        const onTimeCount = completedOrders.filter(o =>
+          o.installCompletedAt &&
+          o.dueDateForCompletion &&
+          new Date(o.installCompletedAt) <= new Date(o.dueDateForCompletion)
+        ).length;
+        onTimePercent = Math.round((onTimeCount / completedOrders.length) * 100);
+
+        // Cache update karo model mein
+        if (epc.onTimeCompletionPercent !== onTimePercent) {
+          await EpcPartner.findByIdAndUpdate(epc._id, { onTimeCompletionPercent: onTimePercent });
+        }
+      }
+    } catch (orderErr) {
+      console.warn('onTime calc skipped:', orderErr.message);
+    }
+
+    res.json({
+      ...epc.toObject(),
+      onTimeCompletionPercent: onTimePercent,
+    });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }

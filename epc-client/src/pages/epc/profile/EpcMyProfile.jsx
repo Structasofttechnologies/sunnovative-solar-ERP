@@ -10,14 +10,8 @@ const EpcMyProfile = () => {
   const [saving, setSaving]     = useState(false);
   const [msg, setMsg]           = useState({ text: '', type: '' });
   const [form, setForm] = useState({
-    companyName: '',
-    ownerName:   '',
-    mobile:      '',
-    state:       '',
-    city:        '',
-    pincode:     '',
-    address:     '',
-    hqLocation:  '',
+    companyName: '', ownerName: '', mobile: '',
+    state: '', city: '', pincode: '', address: '', hqLocation: '',
   });
 
   const load = async () => {
@@ -64,11 +58,10 @@ const EpcMyProfile = () => {
   const inputCls = 'w-full bg-white border border-gray-300 text-gray-800 placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500';
 
   const planColors = {
-    Standard:     { bg: 'bg-gray-100',    text: 'text-gray-700',   border: 'border-gray-200' },
-    Professional: { bg: 'bg-blue-50',     text: 'text-blue-700',   border: 'border-blue-200' },
-    Enterprise:   { bg: 'bg-purple-50',   text: 'text-purple-700', border: 'border-purple-200' },
+    Standard:     { bg: 'bg-gray-100',  text: 'text-gray-700',   border: 'border-gray-200' },
+    Professional: { bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200' },
+    Enterprise:   { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
   };
-
   const planStyle = planColors[profile?.plan] || planColors.Standard;
 
   if (loading) {
@@ -80,12 +73,14 @@ const EpcMyProfile = () => {
   }
 
   return (
-    <div className="space-y-5 max-w-3xl">
+    <div className="space-y-5 max-w-4xl">
+
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-gray-800 text-xl font-bold">My Profile</h2>
           <p className="text-gray-500 text-sm mt-0.5">
-            Your company profile — shown to customers when selecting EPC partner
+            Shown to customers when selecting EPC partner for installation
           </p>
         </div>
         {!editing && (
@@ -102,120 +97,165 @@ const EpcMyProfile = () => {
 
       {msg.text && (
         <div className={`text-sm rounded-lg px-4 py-3 border ${
-          msg.type === 'success'
-            ? 'bg-green-50 border-green-200 text-green-700'
-            : 'bg-red-50 border-red-200 text-red-700'
+          msg.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'
         }`}>{msg.text}</div>
       )}
 
       {/* ── Company Header Card ── */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <div className="flex items-start gap-4">
-          {/* Avatar */}
+        <div className="flex items-start gap-4 flex-wrap">
           <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
             <span className="text-blue-600 text-2xl font-bold">
               {profile?.companyName?.charAt(0)?.toUpperCase() || 'E'}
             </span>
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h3 className="text-gray-800 text-xl font-bold">{profile?.companyName}</h3>
             <p className="text-gray-500 text-sm">{profile?.ownerName}</p>
-            <div className="flex items-center gap-3 mt-2 flex-wrap">
-              {/* Plan badge */}
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               <span className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${planStyle.bg} ${planStyle.text} ${planStyle.border}`}>
                 {profile?.plan} Plan
               </span>
-              {/* Status badge */}
               <span className={`text-xs px-2.5 py-1 rounded-full font-medium border ${
-                profile?.onboardingStatus === 'Verified'
-                  ? 'bg-green-50 text-green-700 border-green-200'
-                  : profile?.onboardingStatus === 'Approved'
-                  ? 'bg-blue-50 text-blue-700 border-blue-200'
-                  : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                profile?.onboardingStatus === 'Verified'  ? 'bg-green-50 text-green-700 border-green-200' :
+                profile?.onboardingStatus === 'Approved'  ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                'bg-yellow-50 text-yellow-700 border-yellow-200'
               }`}>
                 {profile?.onboardingStatus}
               </span>
             </div>
           </div>
 
-          {/* Rating — boss ne kaha: star ratings overall */}
+          {/* Overall Rating */}
           <div className="flex-shrink-0 text-center bg-yellow-50 border border-yellow-200 rounded-xl px-5 py-3">
-            <div className="flex items-center gap-1 justify-center mb-1">
+            <p className="text-yellow-600 text-xs font-medium mb-1">Overall Rating</p>
+            <div className="flex items-center gap-0.5 justify-center mb-1">
               {[1,2,3,4,5].map(s => (
-                <svg key={s}
-                  className={`w-4 h-4 ${s <= Math.round(profile?.rating || 0) ? 'text-yellow-400' : 'text-gray-200'}`}
+                <svg key={s} className={`w-4 h-4 ${s <= Math.round(profile?.rating || 0) ? 'text-yellow-400' : 'text-gray-200'}`}
                   fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
               ))}
             </div>
-            <p className="text-yellow-700 text-lg font-bold">{profile?.rating?.toFixed(1) || '0.0'}</p>
+            <p className="text-yellow-700 text-2xl font-bold">{profile?.rating?.toFixed(1) || '0.0'}</p>
             <p className="text-yellow-600 text-xs">{profile?.totalRatings || 0} ratings</p>
           </div>
         </div>
       </div>
 
+      {/* ── Stats Row: On-time %, Districts, Experience ── */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+          <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center mx-auto mb-2">
+            <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-2xl font-bold text-green-600">{profile?.onTimeCompletionPercent ?? '—'}%</p>
+          <p className="text-gray-500 text-xs mt-0.5">Project Completion On Time</p>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+          <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-2">
+            <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            </svg>
+          </div>
+          <p className="text-2xl font-bold text-blue-600">{profile?.activeDistricts?.length || 0}</p>
+          <p className="text-gray-500 text-xs mt-0.5">Active Districts</p>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+          <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center mx-auto mb-2">
+            <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <p className="text-2xl font-bold text-purple-600">{profile?.yearsOfExperience || 0}</p>
+          <p className="text-gray-500 text-xs mt-0.5">Years Experience</p>
+        </div>
+      </div>
+
+      {/* ── Project Type wise Ratings ── */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5">
+        <h3 className="text-gray-700 text-sm font-semibold mb-4 flex items-center gap-2">
+          <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          Ratings by Project Type
+        </h3>
+        <ProjectTypeRatings epcId={profile?._id} overallRating={profile?.rating} />
+      </div>
+
+      {/* ── Recent Installation Photos ── */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-gray-700 text-sm font-semibold flex items-center gap-2">
+            <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Recent Installation Photos
+          </h3>
+          <p className="text-gray-400 text-xs">From completed projects · shown to customers</p>
+        </div>
+        <RecentInstallationPhotos epcId={profile?._id} />
+      </div>
+
+      {/* ── Customer Comments ── */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5">
+        <h3 className="text-gray-700 text-sm font-semibold mb-4 flex items-center gap-2">
+          <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+          Customer Comments
+          <span className="text-xs text-gray-400 font-normal">(from completed orders)</span>
+        </h3>
+        <CustomerComments epcId={profile?._id} />
+      </div>
+
       {/* ── Edit Form ── */}
-      {editing ? (
+      {editing && (
         <div className="bg-white border border-gray-200 rounded-xl p-6">
           <h3 className="text-gray-700 font-semibold mb-4">Edit Company Information</h3>
           <form onSubmit={handleSave} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-gray-600 text-xs mb-1">Company Name</label>
-                <input type="text" value={form.companyName}
-                  onChange={e => setForm({...form, companyName: e.target.value})}
-                  className={inputCls} />
+                <input type="text" value={form.companyName} onChange={e => setForm({...form, companyName: e.target.value})} className={inputCls} />
               </div>
               <div>
                 <label className="block text-gray-600 text-xs mb-1">Owner Name</label>
-                <input type="text" value={form.ownerName}
-                  onChange={e => setForm({...form, ownerName: e.target.value})}
-                  className={inputCls} />
+                <input type="text" value={form.ownerName} onChange={e => setForm({...form, ownerName: e.target.value})} className={inputCls} />
               </div>
               <div>
                 <label className="block text-gray-600 text-xs mb-1">Mobile</label>
-                <input type="tel" value={form.mobile}
-                  onChange={e => setForm({...form, mobile: e.target.value})}
-                  maxLength={10} className={inputCls} />
+                <input type="tel" value={form.mobile} onChange={e => setForm({...form, mobile: e.target.value})} maxLength={10} className={inputCls} />
               </div>
               <div>
                 <label className="block text-gray-600 text-xs mb-1">HQ Location</label>
-                <input type="text" value={form.hqLocation}
-                  onChange={e => setForm({...form, hqLocation: e.target.value})}
-                  placeholder="e.g. Surat" className={inputCls} />
+                <input type="text" value={form.hqLocation} onChange={e => setForm({...form, hqLocation: e.target.value})} placeholder="e.g. Surat" className={inputCls} />
               </div>
               <div>
                 <label className="block text-gray-600 text-xs mb-1">State</label>
-                <input type="text" value={form.state}
-                  onChange={e => setForm({...form, state: e.target.value})}
-                  className={inputCls} />
+                <input type="text" value={form.state} onChange={e => setForm({...form, state: e.target.value})} className={inputCls} />
               </div>
               <div>
                 <label className="block text-gray-600 text-xs mb-1">City</label>
-                <input type="text" value={form.city}
-                  onChange={e => setForm({...form, city: e.target.value})}
-                  className={inputCls} />
+                <input type="text" value={form.city} onChange={e => setForm({...form, city: e.target.value})} className={inputCls} />
               </div>
               <div>
                 <label className="block text-gray-600 text-xs mb-1">Pincode</label>
-                <input type="text" value={form.pincode}
-                  onChange={e => setForm({...form, pincode: e.target.value})}
-                  maxLength={6} className={inputCls} />
+                <input type="text" value={form.pincode} onChange={e => setForm({...form, pincode: e.target.value})} maxLength={6} className={inputCls} />
               </div>
               <div className="col-span-2">
                 <label className="block text-gray-600 text-xs mb-1">Address</label>
-                <textarea value={form.address}
-                  onChange={e => setForm({...form, address: e.target.value})}
-                  rows={2} className={`${inputCls} resize-none`} />
+                <textarea value={form.address} onChange={e => setForm({...form, address: e.target.value})} rows={2} className={`${inputCls} resize-none`} />
               </div>
             </div>
             <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => setEditing(false)}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2.5 rounded-lg">
-                Cancel
-              </button>
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2.5 rounded-lg">Cancel</button>
               <button type="submit" disabled={saving}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg">
                 {saving ? 'Saving...' : 'Save Changes'}
@@ -223,110 +263,123 @@ const EpcMyProfile = () => {
             </div>
           </form>
         </div>
-      ) : (
-        /* ── Profile Info View ── */
+      )}
+
+      {/* ── Contact + Location (view mode) ── */}
+      {!editing && (
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="bg-white border border-gray-200 rounded-xl p-5">
             <h3 className="text-gray-700 text-sm font-semibold mb-3">Contact Info</h3>
             <div className="space-y-2.5">
-              <div>
-                <p className="text-gray-400 text-xs">Email</p>
-                <p className="text-gray-800 text-sm">{profile?.email}</p>
-              </div>
-              <div>
-                <p className="text-gray-400 text-xs">Mobile</p>
-                <p className="text-gray-800 text-sm">{profile?.mobile}</p>
-              </div>
-              <div>
-                <p className="text-gray-400 text-xs">HQ Location</p>
-                <p className="text-gray-800 text-sm">{profile?.hqLocation || '—'}</p>
-              </div>
+              <div><p className="text-gray-400 text-xs">Email</p><p className="text-gray-800 text-sm">{profile?.email}</p></div>
+              <div><p className="text-gray-400 text-xs">Mobile</p><p className="text-gray-800 text-sm">{profile?.mobile || '—'}</p></div>
+              <div><p className="text-gray-400 text-xs">HQ Location</p><p className="text-gray-800 text-sm">{profile?.hqLocation || '—'}</p></div>
             </div>
           </div>
-
           <div className="bg-white border border-gray-200 rounded-xl p-5">
             <h3 className="text-gray-700 text-sm font-semibold mb-3">Location</h3>
             <div className="space-y-2.5">
-              <div>
-                <p className="text-gray-400 text-xs">State</p>
-                <p className="text-gray-800 text-sm">{profile?.state || '—'}</p>
-              </div>
-              <div>
-                <p className="text-gray-400 text-xs">City</p>
-                <p className="text-gray-800 text-sm">{profile?.city || '—'}</p>
-              </div>
-              <div>
-                <p className="text-gray-400 text-xs">Address</p>
-                <p className="text-gray-800 text-sm">{profile?.address || '—'}</p>
-              </div>
+              <div><p className="text-gray-400 text-xs">State</p><p className="text-gray-800 text-sm">{profile?.state || '—'}</p></div>
+              <div><p className="text-gray-400 text-xs">City</p><p className="text-gray-800 text-sm">{profile?.city || '—'}</p></div>
+              <div><p className="text-gray-400 text-xs">Address</p><p className="text-gray-800 text-sm">{profile?.address || '—'}</p></div>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Experience & Plan ── */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <h3 className="text-gray-700 text-sm font-semibold mb-3">Experience & Plan</h3>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <p className="text-gray-400 text-xs mb-1">Experience</p>
-            <p className="text-gray-800 text-lg font-bold">{profile?.yearsOfExperience || 0}</p>
-            <p className="text-gray-500 text-xs">Years</p>
-          </div>
-          <div className="bg-blue-50 rounded-lg p-3 text-center">
-            <p className="text-gray-400 text-xs mb-1">Active Districts</p>
-            <p className="text-blue-700 text-lg font-bold">{profile?.activeDistricts?.length || 0}</p>
-            <p className="text-gray-500 text-xs">Districts</p>
-          </div>
-          <div className="bg-yellow-50 rounded-lg p-3 text-center">
-            <p className="text-gray-400 text-xs mb-1">Overall Rating</p>
-            <p className="text-yellow-700 text-lg font-bold">{profile?.rating?.toFixed(1) || '0.0'}</p>
-            <p className="text-gray-500 text-xs">{profile?.totalRatings || 0} reviews</p>
+      {/* Active districts */}
+      {profile?.activeDistricts?.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <p className="text-gray-700 text-sm font-semibold mb-3">Active Districts</p>
+          <div className="flex gap-2 flex-wrap">
+            {profile.activeDistricts.map(d => (
+              <span key={d} className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg border border-blue-200">{d}</span>
+            ))}
           </div>
         </div>
-
-        {/* Active districts list */}
-        {profile?.activeDistricts?.length > 0 && (
-          <div className="mt-4">
-            <p className="text-gray-500 text-xs mb-2">Active Districts:</p>
-            <div className="flex gap-2 flex-wrap">
-              {profile.activeDistricts.map(d => (
-                <span key={d}
-                  className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded border border-blue-200">
-                  {d}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Recent Installation Photos ── */}
-      {/* Boss ne kaha: "recent installation photos to be uploaded here" */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-gray-700 text-sm font-semibold">
-            Recent Installation Photos
-          </h3>
-          <p className="text-gray-400 text-xs">
-            Shown to customers when selecting installer
-          </p>
-        </div>
-
-        {/* Photos from completed orders */}
-        <RecentInstallationPhotos epcId={profile?._id} />
-      </div>
+      )}
     </div>
   );
 };
 
-// ── Sub-component: fetch recent installation photos from completed orders ──
+// ── Project Type wise Ratings ──
+const ProjectTypeRatings = ({ epcId, overallRating }) => {
+  const [ratings, setRatings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const { data } = await epcApi.get('/api/epc/orders?status=Completed');
+        const orders = data.orders || data;
+
+        // Group ratings by project type
+        const grouped = {};
+        orders.forEach(o => {
+          if (o.customerRating && o.projectType) {
+            if (!grouped[o.projectType]) grouped[o.projectType] = { total: 0, count: 0 };
+            grouped[o.projectType].total += o.customerRating;
+            grouped[o.projectType].count += 1;
+          }
+        });
+
+        const result = Object.entries(grouped).map(([type, { total, count }]) => ({
+          type,
+          avg: (total / count).toFixed(1),
+          count,
+        }));
+        setRatings(result);
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (epcId) fetch();
+  }, [epcId]);
+
+  if (loading) return <p className="text-gray-400 text-sm">Loading ratings...</p>;
+
+  if (ratings.length === 0) {
+    return (
+      <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+        <p className="text-gray-400 text-sm">No ratings yet</p>
+        <p className="text-gray-300 text-xs mt-1">Ratings will appear after customers complete orders</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {ratings.map(r => (
+        <div key={r.type} className="flex items-center gap-4">
+          <p className="text-gray-600 text-sm w-48 truncate flex-shrink-0">{r.type}</p>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {[1,2,3,4,5].map(s => (
+              <svg key={s} className={`w-3.5 h-3.5 ${s <= Math.round(r.avg) ? 'text-yellow-400' : 'text-gray-200'}`}
+                fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+            ))}
+          </div>
+          <span className="text-gray-800 text-sm font-semibold">{r.avg}</span>
+          <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+            <div className="bg-yellow-400 h-full rounded-full" style={{ width: `${(r.avg / 5) * 100}%` }} />
+          </div>
+          <span className="text-gray-400 text-xs flex-shrink-0">{r.count} review{r.count !== 1 ? 's' : ''}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ── Recent Installation Photos ──
 const RecentInstallationPhotos = ({ epcId }) => {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPhotos = async () => {
+    const fetch = async () => {
       try {
         const { data } = await epcApi.get('/api/epc/orders?status=Completed');
         const orders = data.orders || data;
@@ -334,23 +387,18 @@ const RecentInstallationPhotos = ({ epcId }) => {
         orders.forEach(order => {
           if (order.installationPhotos?.length) {
             order.installationPhotos.forEach(photo => {
-              allPhotos.push({
-                ...photo,
-                orderNumber:  order.orderNumber,
-                projectType:  order.projectType,
-                district:     order.district,
-              });
+              allPhotos.push({ ...photo, projectType: order.projectType, district: order.district });
             });
           }
         });
-        setPhotos(allPhotos.slice(0, 6)); // max 6 photos
+        setPhotos(allPhotos.slice(0, 6));
       } catch {
         // silently fail
       } finally {
         setLoading(false);
       }
     };
-    if (epcId) fetchPhotos();
+    if (epcId) fetch();
   }, [epcId]);
 
   if (loading) return <p className="text-gray-400 text-sm">Loading photos...</p>;
@@ -372,12 +420,92 @@ const RecentInstallationPhotos = ({ epcId }) => {
     <div className="grid grid-cols-3 gap-3">
       {photos.map((photo, i) => (
         <div key={i} className="relative rounded-lg overflow-hidden bg-gray-100 aspect-square">
-          <img src={photo.fileUrl} alt={photo.caption || 'Installation'}
-            className="w-full h-full object-cover" />
+          <img src={photo.fileUrl} alt={photo.caption || 'Installation'} className="w-full h-full object-cover" />
           <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-2 py-1">
             <p className="text-white text-xs truncate">{photo.projectType}</p>
             <p className="text-gray-300 text-xs truncate">{photo.district}</p>
           </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ── Customer Comments ──
+const CustomerComments = ({ epcId }) => {
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading]   = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const { data } = await epcApi.get('/api/epc/orders?status=Completed');
+        const orders = data.orders || data;
+        const result = orders
+          .filter(o => o.customerFeedback)
+          .map(o => ({
+            feedback:    o.customerFeedback,
+            rating:      o.customerRating,
+            projectType: o.projectType,
+            district:    o.district,
+            ratedAt:     o.ratedAt,
+            customer:    o.customerName,
+          }))
+          .slice(0, 5);
+        setComments(result);
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (epcId) fetch();
+  }, [epcId]);
+
+  if (loading) return <p className="text-gray-400 text-sm">Loading comments...</p>;
+
+  if (comments.length === 0) {
+    return (
+      <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+        <svg className="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+        </svg>
+        <p className="text-gray-400 text-sm">No comments yet</p>
+        <p className="text-gray-300 text-xs mt-1">Customer feedback will appear after project completion</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {comments.map((c, i) => (
+        <div key={i} className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div>
+              <p className="text-gray-800 text-sm font-medium">{c.customer}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100">{c.projectType}</span>
+                <span className="text-gray-400 text-xs">{c.district}</span>
+              </div>
+            </div>
+            <div className="flex-shrink-0 text-right">
+              <div className="flex items-center gap-0.5 justify-end">
+                {[1,2,3,4,5].map(s => (
+                  <svg key={s} className={`w-3 h-3 ${s <= (c.rating || 0) ? 'text-yellow-400' : 'text-gray-200'}`}
+                    fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                ))}
+              </div>
+              {c.ratedAt && (
+                <p className="text-gray-300 text-xs mt-0.5">
+                  {new Date(c.ratedAt).toLocaleDateString('en-IN')}
+                </p>
+              )}
+            </div>
+          </div>
+          <p className="text-gray-600 text-sm italic">"{c.feedback}"</p>
         </div>
       ))}
     </div>
