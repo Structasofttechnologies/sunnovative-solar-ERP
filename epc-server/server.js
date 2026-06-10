@@ -18,8 +18,14 @@ app.use(express.urlencoded({ extended: true }));
 
 //-routes--------------------------
 
-app.use('/api/epc/auth',require('./routes/epcAuthRoutes'))
-
+// ── Routes ──────────────────────────────────────────
+app.use('/api/epc/auth',      require('./routes/EpcAuthRoutes'));
+app.use('/api/epc/enquiries', require('./routes/EpcEnquiryRoutes'));
+app.use('/api/epc/orders',    require('./routes/EpcOrderRoutes'));
+app.use('/api/epc/projects',  require('./routes/EpcProjectRoutes'));
+app.use('/api/epc/team',      require('./routes/EpcTeamRoutes'));
+app.use('/api/epc/calendar',  require('./routes/EpcCalenderRoutes'));
+app.use('/api/epc/plans',     require('./routes/EpcPlanRoutes'));
 
 app.get('/',(req,res)=>{res.json({message:'Welcome to Sunnovative EPC API'})});
 

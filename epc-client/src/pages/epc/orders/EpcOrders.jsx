@@ -3,11 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 import epcApi from '../../../api/epcApi';
 
 const statusColors = {
-  New:       'bg-blue-50 text-blue-600 border-blue-200',
-  Ongoing:   'bg-yellow-50 text-yellow-600 border-yellow-200',
-  Overdue:   'bg-red-50 text-red-600 border-red-200',
-  Completed: 'bg-green-50 text-green-600 border-green-200',
-  Cancelled: 'bg-gray-100 text-gray-500 border-gray-200',
+  New:       'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/40 dark:text-blue-400 dark:border-blue-800',
+  Ongoing:   'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-400 dark:border-yellow-800',
+  Overdue:   'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/40 dark:text-red-400 dark:border-red-800',
+  Completed: 'bg-green-50 text-green-600 border-green-200 dark:bg-green-900/40 dark:text-green-400 dark:border-green-800',
+  Cancelled: 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600',
 };
 
 const stageSteps = ['Order Created', 'Installation Pending', 'Net Metering', 'PCR Reports', 'Completed'];
@@ -74,13 +74,13 @@ const EpcOrders = () => {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-gray-800 text-xl font-bold">Orders</h2>
-          <p className="text-gray-500 text-sm mt-0.5">All project orders — track payments and stages</p>
+          <h2 className="text-gray-800 dark:text-white text-xl font-bold">Orders</h2>
+          <p className="text-gray-500 dark:text-slate-400 text-sm mt-0.5">All project orders — track payments and stages</p>
         </div>
       </div>
 
       {msg && (
-        <div className="bg-blue-50 border border-blue-200 text-blue-700 text-sm rounded-lg px-4 py-3">{msg}</div>
+        <div className="bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-sm rounded-lg px-4 py-3">{msg}</div>
       )}
 
       {/* Status tabs */}
@@ -89,8 +89,8 @@ const EpcOrders = () => {
           <button key={t.key} onClick={() => setFilter(t.key)}
             className={`text-xs px-3 py-1.5 rounded-lg font-medium border transition-colors ${
               filter === t.key
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-gray-500 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-500 dark:border-blue-500'
+                : 'bg-white text-gray-500 border-gray-200 hover:border-blue-300 hover:text-blue-600 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 dark:hover:border-blue-500 dark:hover:text-blue-400'
             }`}>
             {t.label} ({t.count})
           </button>
@@ -98,22 +98,22 @@ const EpcOrders = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Loading orders...</div>
+        <div className="text-center py-12 text-gray-400 dark:text-slate-500">Loading orders...</div>
       ) : orders.length === 0 ? (
         <div className="text-center py-12">
-          <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <svg className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-14 h-14 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg className="w-7 h-7 text-gray-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           </div>
-          <p className="text-gray-400">No orders found</p>
+          <p className="text-gray-400 dark:text-slate-500">No orders found</p>
         </div>
       ) : (
         <div className="space-y-3">
           {orders.map(order => (
             <div key={order._id}
-              className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-blue-300 hover:shadow-sm transition-all">
+              className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-sm transition-all">
               <div className="p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
@@ -121,24 +121,24 @@ const EpcOrders = () => {
                       <span className={`text-xs px-2 py-0.5 rounded border font-medium ${statusColors[order.status] || ''}`}>
                         {order.status}
                       </span>
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded border border-gray-200">
+                      <span className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 px-2 py-0.5 rounded border border-gray-200 dark:border-slate-600">
                         {order.projectType}
                       </span>
-                      <span className="text-xs text-gray-400 font-mono">#{order.orderNumber}</span>
+                      <span className="text-xs text-gray-400 dark:text-slate-500 font-mono">#{order.orderNumber}</span>
                     </div>
-                    <h3 className="text-gray-800 font-semibold">{order.customerName}</h3>
-                    <div className="flex items-center gap-4 mt-1 text-gray-500 text-xs flex-wrap">
+                    <h3 className="text-gray-800 dark:text-white font-semibold">{order.customerName}</h3>
+                    <div className="flex items-center gap-4 mt-1 text-gray-500 dark:text-slate-400 text-xs flex-wrap">
                       <span>📱 {order.customerMobile}</span>
                       <span>📍 {order.district}</span>
                       {order.systemCapacityKw && <span>⚡ {order.systemCapacityKw} kW</span>}
                       {order.totalProjectValue > 0 && (
-                        <span className="text-green-600 font-medium">₹{order.totalProjectValue?.toLocaleString('en-IN')}</span>
+                        <span className="text-green-600 dark:text-green-400 font-medium">₹{order.totalProjectValue?.toLocaleString('en-IN')}</span>
                       )}
                     </div>
                   </div>
                   <button
                     onClick={() => setSelected(selected?._id === order._id ? null : order)}
-                    className="flex-shrink-0 text-gray-400 hover:text-blue-600 p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                    className="flex-shrink-0 text-gray-400 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors"
                   >
                     <svg className={`w-4 h-4 transition-transform ${selected?._id === order._id ? 'rotate-180' : ''}`}
                       fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -156,9 +156,9 @@ const EpcOrders = () => {
                       const active = i === currentIdx;
                       return (
                         <div key={stage} className="flex-1 flex flex-col items-center gap-1">
-                          <div className={`h-1.5 w-full rounded-full ${done ? 'bg-blue-500' : active ? 'bg-blue-400' : 'bg-gray-200'}`} />
+                          <div className={`h-1.5 w-full rounded-full ${done ? 'bg-blue-500 dark:bg-blue-500' : active ? 'bg-blue-400 dark:bg-blue-400' : 'bg-gray-200 dark:bg-slate-700'}`} />
                           <span className={`text-xs text-center leading-tight hidden sm:block ${
-                            active ? 'text-blue-600 font-medium' : done ? 'text-gray-400' : 'text-gray-300'
+                            active ? 'text-blue-600 dark:text-blue-400 font-medium' : done ? 'text-gray-400 dark:text-slate-400' : 'text-gray-300 dark:text-slate-500'
                           }`}>{stage}</span>
                         </div>
                       );
@@ -169,33 +169,33 @@ const EpcOrders = () => {
 
               {/* Expanded detail */}
               {selected?._id === order._id && (
-                <div className="border-t border-gray-100 p-5 space-y-4 bg-gray-50">
+                <div className="border-t border-gray-100 dark:border-slate-700 p-5 space-y-4 bg-gray-50 dark:bg-slate-900/50">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white border border-gray-200 rounded-lg p-3">
-                      <p className="text-gray-400 text-xs mb-1">90% Payment</p>
-                      <p className="text-gray-800 text-sm font-semibold">
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg p-3">
+                      <p className="text-gray-400 dark:text-slate-400 text-xs mb-1">90% Payment</p>
+                      <p className="text-gray-800 dark:text-white text-sm font-semibold">
                         ₹{order.payment90?.amount?.toLocaleString('en-IN') || 0}
                       </p>
-                      <span className={`text-xs font-medium ${order.payment90?.status === 'Released' ? 'text-green-600' : 'text-yellow-600'}`}>
+                      <span className={`text-xs font-medium ${order.payment90?.status === 'Released' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-500'}`}>
                         {order.payment90?.status || 'Pending'}
                       </span>
                     </div>
-                    <div className="bg-white border border-gray-200 rounded-lg p-3">
-                      <p className="text-gray-400 text-xs mb-1">10% Payment (Escrow)</p>
-                      <p className="text-gray-800 text-sm font-semibold">
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg p-3">
+                      <p className="text-gray-400 dark:text-slate-400 text-xs mb-1">10% Payment (Escrow)</p>
+                      <p className="text-gray-800 dark:text-white text-sm font-semibold">
                         ₹{order.payment10?.amount?.toLocaleString('en-IN') || 0}
                       </p>
-                      <span className={`text-xs font-medium ${order.payment10?.status === 'Released' ? 'text-green-600' : 'text-yellow-600'}`}>
+                      <span className={`text-xs font-medium ${order.payment10?.status === 'Released' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-500'}`}>
                         {order.payment10?.status || 'Pending'}
                       </span>
                     </div>
                   </div>
 
                   {order.scheduledInstallDate && (
-                    <p className="text-gray-600 text-xs">📅 Scheduled: {new Date(order.scheduledInstallDate).toLocaleDateString('en-IN')}</p>
+                    <p className="text-gray-600 dark:text-slate-300 text-xs">📅 Scheduled: {new Date(order.scheduledInstallDate).toLocaleDateString('en-IN')}</p>
                   )}
                   {order.dueDateForCompletion && (
-                    <p className="text-gray-600 text-xs">⏰ Due: {new Date(order.dueDateForCompletion).toLocaleDateString('en-IN')}</p>
+                    <p className="text-gray-600 dark:text-slate-300 text-xs">⏰ Due: {new Date(order.dueDateForCompletion).toLocaleDateString('en-IN')}</p>
                   )}
 
                   {order.stage !== 'Completed' && (
@@ -207,10 +207,10 @@ const EpcOrders = () => {
 
                   {order.customerRating && (
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 text-xs">Customer Rating:</span>
+                      <span className="text-gray-500 dark:text-slate-400 text-xs">Customer Rating:</span>
                       <div className="flex gap-0.5">
                         {[1,2,3,4,5].map(s => (
-                          <svg key={s} className={`w-3.5 h-3.5 ${s <= order.customerRating ? 'text-yellow-400' : 'text-gray-200'}`}
+                          <svg key={s} className={`w-3.5 h-3.5 ${s <= order.customerRating ? 'text-yellow-400' : 'text-gray-200 dark:text-slate-600'}`}
                             fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                           </svg>

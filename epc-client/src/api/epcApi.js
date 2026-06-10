@@ -2,7 +2,9 @@ import axios from 'axios';
 
 const epcApi = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+  withCredentials: true   // ✅ YE ADD KAR
 });
+
 
 // Attach EPC token to every request
 epcApi.interceptors.request.use((config) => {
