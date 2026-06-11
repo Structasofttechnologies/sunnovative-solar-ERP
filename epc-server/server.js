@@ -19,13 +19,13 @@ app.use(express.urlencoded({ extended: true }));
 //-routes--------------------------
 
 // ── Routes ──────────────────────────────────────────
-app.use('/api/epc/auth',      require('./routes/EpcAuthRoutes'));
-app.use('/api/epc/enquiries', require('./routes/EpcEnquiryRoutes'));
-app.use('/api/epc/orders',    require('./routes/EpcOrderRoutes'));
-app.use('/api/epc/projects',  require('./routes/EpcProjectRoutes'));
-app.use('/api/epc/team',      require('./routes/EpcTeamRoutes'));
-app.use('/api/epc/calendar',  require('./routes/EpcCalenderRoutes'));
-app.use('/api/epc/plans',     require('./routes/EpcPlanRoutes'));
+app.use('/api/epc/auth',      require('./routes/epcAuthRoutes'));
+app.use('/api/epc/enquiries', require('./routes/epcEnquiryRoutes'));
+app.use('/api/epc/orders',    require('./routes/epcOrderRoutes'));
+app.use('/api/epc/projects',  require('./routes/epcProjectRoutes'));
+app.use('/api/epc/team',      require('./routes/epcTeamRoutes'));
+app.use('/api/epc/calendar',  require('./routes/epcCalenderRoutes'));
+app.use('/api/epc/plans',     require('./routes/epcPlanRoutes'));
 
 app.get('/',(req,res)=>{res.json({message:'Welcome to Sunnovative EPC API'})});
 
