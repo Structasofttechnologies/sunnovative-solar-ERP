@@ -1,14 +1,22 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import epcApi from '../api/epcApi';
 
 const EpcAuthContext = createContext(null);
 
 export const EpcAuthProvider = ({ children }) => {
-  const [epc, setEpc] = useState(() => {
+  const [epc, setEpc] = useState(null);
+  
+  // 🚀 Optimization: Shuru me loading true rahegi jab tak localStorage check na ho jaye
+  const [loading, setLoading] = useState(true);
+
+  // App load hote hi sabse pehle bina kisi lag ke localstorage check hoga
+  useEffect(() => {
     const stored = localStorage.getItem('epcPartner');
-    return stored ? JSON.parse(stored) : null;
-  });
-  const [loading, setLoading] = useState(false);
+    if (stored) {
+      setEpc(JSON.parse(stored));
+    }
+    setLoading(false); // Check hone ke baad loading turant false
+  }, []);
 
   const login = async (email, password) => {
     setLoading(true);
@@ -30,7 +38,7 @@ export const EpcAuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('epcPartner');
     setEpc(null);
-    window.location.href = '/epc/login';
+    // 🚀 Fixed: Hard refresh hata diya, ab bina browser ghoome instant logout hoga
   };
 
   const updateEpcData = (newData) => {
