@@ -6,14 +6,12 @@ const EpcPartner = require('../models/EpcPartner');
 const getMyEnquiries = async (req, res) => {
   try {
     const epc = await EpcPartner.findById(req.epc._id);
-    const { status, projectType, district } = req.query;
+    const { status, projectType, district, enquiryType } = req.query;
 
     const filter = {
       district: { $in: epc.activeDistricts },
       $or: [
-        // EPC ki apni enquiries
         { epcPartner: req.epc._id },
-        // Unassigned enquiries jo EPC dekh sakta hai
         {
           epcPartner: null,
           status: { $in: ['Open For EPC', 'Bid Running', 'Lead', 'Token Paid', 'Order Generated'] }
@@ -21,9 +19,9 @@ const getMyEnquiries = async (req, res) => {
       ],
     };
 
-    // Query filters
-    if (status)   filter.status      = status;
+    if (status)      filter.status      = status;
     if (projectType) filter.projectType = projectType;
+    if (enquiryType) filter.enquiryType = enquiryType;
     if (district && epc.activeDistricts.includes(district)) {
       filter.district = district;
     }
@@ -53,7 +51,6 @@ const acceptEnquiry = async (req, res) => {
     const enquiry = await EpcEnquiry.findById(req.params.id);
     if (!enquiry) return res.status(404).json({ message: 'Enquiry not found' });
 
-    // Fix: naye status flow ke hisaab se check karo
     const acceptableStatuses = ['Open For EPC', 'Bid Running', 'New'];
     if (!acceptableStatuses.includes(enquiry.status)) {
       return res.status(400).json({
@@ -70,7 +67,7 @@ const acceptEnquiry = async (req, res) => {
     deadline.setHours(deadline.getHours() + 24);
 
     enquiry.epcPartner    = req.epc._id;
-    enquiry.status        = 'EPC Accepted';       // Fix: naya status
+    enquiry.status        = 'EPC Accepted';
     enquiry.acceptedAt    = new Date();
     enquiry.acceptanceFee = req.body.acceptanceFee || 0;
     enquiry.customerSelectionDeadline = deadline;
@@ -96,7 +93,6 @@ const convertToOrder = async (req, res) => {
       return res.status(400).json({ message: 'Already converted to order' });
     }
 
-    // Fix: naye status ke hisaab se check
     const convertibleStatuses = ['EPC Accepted', 'Customer Selected EPC'];
     if (!convertibleStatuses.includes(enquiry.status)) {
       return res.status(400).json({
@@ -127,7 +123,7 @@ const convertToOrder = async (req, res) => {
         amount: totalProjectValue ? totalProjectValue * 0.1 : 0,
         status: 'Pending',
       },
-      stage:  'Registration Started',  // Fix: naya stage flow
+      stage:  'Registration Started',
       status: 'New',
       scheduledInstallDate,
       dueDateForCompletion,

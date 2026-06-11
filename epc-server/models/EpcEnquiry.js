@@ -6,6 +6,17 @@ const epcEnquirySchema = new mongoose.Schema({
   customerMobile: { type: String, required: true },
   customerEmail:  { type: String },
 
+  // ── Enquiry Type — boss ne 3 types bataye ───────────────────────────
+  enquiryType: {
+    type: String,
+    enum: [
+      'ECommerce',   // Customer ne website se direct order diya (token paid)
+      'Bidding',     // >10kW — EPC bid karta hai (Bid System)
+      'QuoteByEPC',  // EPC apna quote deta hai customer ko
+    ],
+    default: 'ECommerce',
+  },
+
   projectType: {
     type: String,
     enum: [
@@ -24,35 +35,28 @@ const epcEnquirySchema = new mongoose.Schema({
   city:     { type: String },
   address:  { type: String },
 
-  // Token payment — customer pays token to lock enquiry
   tokenAmount: { type: Number, default: 0 },
   tokenPaid:   { type: Boolean, default: false },
   tokenPaidAt: { type: Date },
   orderNumber: { type: String },
 
-  // ── Updated Status Flow (boss ka document) ──────────────────────────
-  // Lead → Token Paid → Order Generated → Open For EPC →
-  // Bid Running → EPC Accepted → Customer Selected EPC →
-  // Converted (order ban gaya)
   status: {
     type: String,
     enum: [
-      'Lead',               // Initial enquiry / lead
-      'Token Paid',         // Customer ne token diya
-      'Order Generated',    // Order number generate hua
-      'Open For EPC',       // EPC dekh sakte hain
-      'Bid Running',        // EPCs bid/apply kar rahe hain (>10kW)
-      'EPC Accepted',       // EPC ne accept kiya
-      'Customer Selected EPC', // Customer ne EPC choose kiya
-      'Converted',          // Order ban gaya
-      'Expired',            // 24hr window expire
-      'Rejected',           // Reject hua
+      'Lead',
+      'Token Paid',
+      'Order Generated',
+      'Open For EPC',
+      'Bid Running',
+      'EPC Accepted',
+      'Customer Selected EPC',
+      'Converted',
+      'Expired',
+      'Rejected',
     ],
     default: 'Lead',
   },
 
-  // Order assignment type — admin settings se aata hai
-  // First Come First Serve (<10kW) ya Bid System (>10kW)
   assignmentType: {
     type: String,
     enum: ['FirstComeFirstServe', 'BidSystem'],
@@ -61,14 +65,10 @@ const epcEnquirySchema = new mongoose.Schema({
 
   acceptedAt:    { type: Date },
   acceptanceFee: { type: Number, default: 0 },
-
-  // Customer 24hrs mein EPC select karta hai
   customerSelectionDeadline: { type: Date },
   customerSelectedAt:        { type: Date },
-
   convertedToOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'EpcOrder' },
   convertedAt:      { type: Date },
-
   leadRef: { type: mongoose.Schema.Types.ObjectId, ref: 'Lead' },
 }, { timestamps: true });
 

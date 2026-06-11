@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import { useEpcAuth } from '../../../context/EpcAuthContext';
 import epcApi from '../../../api/epcApi';
 
+const PROJECT_TYPES = [
+  'Surya Ghar Yojana', 'Group Solar', 'Village Solar Campaign',
+  'Commercial Solar', 'Residential Solar',
+];
+
 const EpcMyProfile = () => {
   const { epc, updateEpcData } = useEpcAuth();
   const [profile, setProfile]   = useState(null);
@@ -13,6 +18,10 @@ const EpcMyProfile = () => {
     companyName: '', ownerName: '', mobile: '',
     state: '', city: '', pincode: '', address: '', hqLocation: '',
   });
+
+  // Dynamic filter states
+  const [filterType, setFilterType] = useState('');
+  const [filterDist, setFilterDist] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -55,7 +64,15 @@ const EpcMyProfile = () => {
     }
   };
 
+  const clearFilters = () => {
+    setFilterType('');
+    setFilterDist('');
+  };
+
   const inputCls = 'w-full bg-white border border-gray-300 text-gray-800 placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500';
+  
+  // Clean, visible layout structure matched with image_588ef9.png
+  const filterSelectCls = 'w-48 bg-white border border-gray-300 text-gray-700 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 cursor-pointer';
 
   const planColors = {
     Standard:     { bg: 'bg-gray-100',  text: 'text-gray-700',   border: 'border-gray-200' },
@@ -73,7 +90,7 @@ const EpcMyProfile = () => {
   }
 
   return (
-    <div className="space-y-5 max-w-4xl">
+    <div className="space-y-5 w-full">
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -177,6 +194,31 @@ const EpcMyProfile = () => {
         </div>
       </div>
 
+      {/* ── Clean UI Filter Box (Matched with image_588ef9.png layout structure) ── */}
+      <div className="bg-white border border-gray-200 rounded-xl p-4">
+        <div className="flex items-center gap-4 flex-wrap">
+          <div>
+            <label className="block text-gray-500 text-xs mb-1 font-medium">Project Type</label>
+            <select value={filterType} onChange={e => setFilterType(e.target.value)} className={filterSelectCls}>
+              <option value="">All Types</option>
+              {PROJECT_TYPES.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-gray-500 text-xs mb-1 font-medium">District</label>
+            <select value={filterDist} onChange={e => setFilterDist(e.target.value)} className={filterSelectCls}>
+              <option value="">All Districts</option>
+              {(profile?.activeDistricts || epc?.activeDistricts || []).map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          {(filterType || filterDist) && (
+            <button onClick={clearFilters} className="text-xs text-red-500 border border-red-200 bg-red-50 px-3 py-2 rounded-lg self-end mt-4 transition-all hover:bg-red-100">
+              Clear Filters
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* ── Project Type wise Ratings ── */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <h3 className="text-gray-700 text-sm font-semibold mb-4 flex items-center gap-2">
@@ -185,7 +227,7 @@ const EpcMyProfile = () => {
           </svg>
           Ratings by Project Type
         </h3>
-        <ProjectTypeRatings epcId={profile?._id} overallRating={profile?.rating} />
+        <ProjectTypeRatings epcId={profile?._id} filterType={filterType} filterDist={filterDist} />
       </div>
 
       {/* ── Recent Installation Photos ── */}
@@ -199,19 +241,19 @@ const EpcMyProfile = () => {
           </h3>
           <p className="text-gray-400 text-xs">From completed projects · shown to customers</p>
         </div>
-        <RecentInstallationPhotos epcId={profile?._id} />
+        <RecentInstallationPhotos epcId={profile?._id} filterType={filterType} filterDist={filterDist} />
       </div>
 
       {/* ── Customer Comments ── */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <h3 className="text-gray-700 text-sm font-semibold mb-4 flex items-center gap-2">
           <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
           Customer Comments
           <span className="text-xs text-gray-400 font-normal">(from completed orders)</span>
         </h3>
-        <CustomerComments epcId={profile?._id} />
+        <CustomerComments epcId={profile?._id} filterType={filterType} filterDist={filterDist} />
       </div>
 
       {/* ── Edit Form ── */}
@@ -303,17 +345,21 @@ const EpcMyProfile = () => {
 };
 
 // ── Project Type wise Ratings ──
-const ProjectTypeRatings = ({ epcId, overallRating }) => {
+const ProjectTypeRatings = ({ epcId, filterType, filterDist }) => {
   const [ratings, setRatings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const { data } = await epcApi.get('/api/epc/orders?status=Completed');
+        const params = new URLSearchParams();
+        params.set('status', 'Completed');
+        if (filterType) params.set('projectType', filterType);
+        if (filterDist) params.set('district', filterDist);
+
+        const { data } = await epcApi.get(`/api/epc/orders?${params}`);
         const orders = data.orders || data;
 
-        // Group ratings by project type
         const grouped = {};
         orders.forEach(o => {
           if (o.customerRating && o.projectType) {
@@ -336,7 +382,7 @@ const ProjectTypeRatings = ({ epcId, overallRating }) => {
       }
     };
     if (epcId) fetch();
-  }, [epcId]);
+  }, [epcId, filterType, filterDist]);
 
   if (loading) return <p className="text-gray-400 text-sm">Loading ratings...</p>;
 
@@ -344,7 +390,7 @@ const ProjectTypeRatings = ({ epcId, overallRating }) => {
     return (
       <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-200">
         <p className="text-gray-400 text-sm">No ratings yet</p>
-        <p className="text-gray-300 text-xs mt-1">Ratings will appear after customers complete orders</p>
+        <p className="text-gray-300 text-xs mt-1">No ratings match the selected filters</p>
       </div>
     );
   }
@@ -374,14 +420,19 @@ const ProjectTypeRatings = ({ epcId, overallRating }) => {
 };
 
 // ── Recent Installation Photos ──
-const RecentInstallationPhotos = ({ epcId }) => {
+const RecentInstallationPhotos = ({ epcId, filterType, filterDist }) => {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const { data } = await epcApi.get('/api/epc/orders?status=Completed');
+        const params = new URLSearchParams();
+        params.set('status', 'Completed');
+        if (filterType) params.set('projectType', filterType);
+        if (filterDist) params.set('district', filterDist);
+
+        const { data } = await epcApi.get(`/api/epc/orders?${params}`);
         const orders = data.orders || data;
         const allPhotos = [];
         orders.forEach(order => {
@@ -399,7 +450,7 @@ const RecentInstallationPhotos = ({ epcId }) => {
       }
     };
     if (epcId) fetch();
-  }, [epcId]);
+  }, [epcId, filterType, filterDist]);
 
   if (loading) return <p className="text-gray-400 text-sm">Loading photos...</p>;
 
@@ -411,7 +462,7 @@ const RecentInstallationPhotos = ({ epcId }) => {
             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
         <p className="text-gray-400 text-sm">No installation photos yet</p>
-        <p className="text-gray-300 text-xs mt-1">Photos from completed projects will appear here</p>
+        <p className="text-gray-300 text-xs mt-1">No photos match the selected filters</p>
       </div>
     );
   }
@@ -432,14 +483,19 @@ const RecentInstallationPhotos = ({ epcId }) => {
 };
 
 // ── Customer Comments ──
-const CustomerComments = ({ epcId }) => {
+const CustomerComments = ({ epcId, filterType, filterDist }) => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const { data } = await epcApi.get('/api/epc/orders?status=Completed');
+        const params = new URLSearchParams();
+        params.set('status', 'Completed');
+        if (filterType) params.set('projectType', filterType);
+        if (filterDist) params.set('district', filterDist);
+
+        const { data } = await epcApi.get(`/api/epc/orders?${params}`);
         const orders = data.orders || data;
         const result = orders
           .filter(o => o.customerFeedback)
@@ -460,7 +516,7 @@ const CustomerComments = ({ epcId }) => {
       }
     };
     if (epcId) fetch();
-  }, [epcId]);
+  }, [epcId, filterType, filterDist]);
 
   if (loading) return <p className="text-gray-400 text-sm">Loading comments...</p>;
 
@@ -472,7 +528,7 @@ const CustomerComments = ({ epcId }) => {
             d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
         </svg>
         <p className="text-gray-400 text-sm">No comments yet</p>
-        <p className="text-gray-300 text-xs mt-1">Customer feedback will appear after project completion</p>
+        <p className="text-gray-300 text-xs mt-1">No feedback matches the selected filters</p>
       </div>
     );
   }

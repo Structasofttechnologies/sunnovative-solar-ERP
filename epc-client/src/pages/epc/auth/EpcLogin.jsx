@@ -21,7 +21,7 @@ const EpcLogin = () => {
   };
 
   const fillDemo = () => {
-    setForm({ email: 'admin@epc.com', password: 'password123' });
+    setForm({ email: 'test@epc.com', password: 'password123' });
   };
 
   return (
