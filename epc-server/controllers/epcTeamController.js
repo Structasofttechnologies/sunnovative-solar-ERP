@@ -1,4 +1,4 @@
-const EpcTeamMember = require('../models/EpcTeamMember');
+const EpcTeamMember = require('../models/EpcTeammember');
 const EpcPartner    = require('../models/EpcPartner');
 
 // GET /api/epc/team
