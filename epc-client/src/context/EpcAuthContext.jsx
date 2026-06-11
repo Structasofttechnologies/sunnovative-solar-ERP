@@ -5,40 +5,34 @@ const EpcAuthContext = createContext(null);
 
 export const EpcAuthProvider = ({ children }) => {
   const [epc, setEpc] = useState(null);
-  
-  // 🚀 Optimization: Shuru me loading true rahegi jab tak localStorage check na ho jaye
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // only for initial localStorage check
 
-  // App load hote hi sabse pehle bina kisi lag ke localstorage check hoga
   useEffect(() => {
     const stored = localStorage.getItem('epcPartner');
     if (stored) {
-      setEpc(JSON.parse(stored));
+      try { setEpc(JSON.parse(stored)); } catch { localStorage.removeItem('epcPartner'); }
     }
-    setLoading(false); // Check hone ke baad loading turant false
+    setLoading(false);
   }, []);
 
   const login = async (email, password) => {
-    setLoading(true);
+    // ❌ setLoading(true) NAHI — ye EpcProtectedRoute ka spinner trigger karta tha
     try {
       const { data } = await epcApi.post('/api/epc/auth/login', { email, password });
       localStorage.setItem('epcPartner', JSON.stringify(data));
       setEpc(data);
       return { success: true, data };
     } catch (err) {
-      return { 
-        success: false, 
-        message: err.response?.data?.message || 'Login failed' 
+      return {
+        success: false,
+        message: err.response?.data?.message || 'Login failed',
       };
-    } finally {
-      setLoading(false);
     }
   };
 
   const logout = () => {
     localStorage.removeItem('epcPartner');
     setEpc(null);
-    // 🚀 Fixed: Hard refresh hata diya, ab bina browser ghoome instant logout hoga
   };
 
   const updateEpcData = (newData) => {
