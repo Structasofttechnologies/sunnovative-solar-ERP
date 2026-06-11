@@ -50,7 +50,7 @@ const EpcLogin = () => {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <p className="text-gray-700 text-xs">
-                  <span className="text-gray-400">Email:</span> admin@epc.com
+                  <span className="text-gray-400">Email:</span> test@epc.com
                 </p>
                 <p className="text-gray-700 text-xs">
                   <span className="text-gray-400">Password:</span> password123
