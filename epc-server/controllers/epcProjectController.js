@@ -1,7 +1,6 @@
 const EpcOrder = require('../models/EpcOrder');
 
-// GET /api/epc/projects
-// Document: All project types project management from this module
+// ── GET ALL PROJECTS ─────────────────────────────────────────────────────────
 // Admin panel se set hota hai — EPC yahan track karta hai
 const getAllProjects = async (req, res) => {
   try {
@@ -24,13 +23,17 @@ const getAllProjects = async (req, res) => {
 
     const projects = await EpcOrder.find(filter).sort({ createdAt: -1 });
 
-    // Stage wise count — dashboard cards ke liye
+    // FIX: Schema stages ke sath strictly map kiya dashboard cards ke liye
     const stageSummary = {
-      'Order Created':        0,
-      'Installation Pending': 0,
-      'Net Metering':         0,
-      'PCR Reports':          0,
-      'Completed':            0,
+      'Registration Started':    0,
+      'Material Delivered':      0,
+      'Installation In Progress':0,
+      'Installation Completed':  0,
+      'QC Verification':         0,
+      '90% Payment Released':    0,
+      'Customer Approval':       0,
+      '10% Payment Released':    0,
+      'Project Closed':          0,
     };
 
     projects.forEach(p => {
@@ -46,8 +49,7 @@ const getAllProjects = async (req, res) => {
   }
 };
 
-// GET /api/epc/projects/:id
-// Single project detail — full info with docs, photos, payments
+// ── GET PROJECT BY ID ────────────────────────────────────────────────────────
 const getProjectById = async (req, res) => {
   try {
     const project = await EpcOrder.findOne({
@@ -66,16 +68,20 @@ const getProjectById = async (req, res) => {
   }
 };
 
-// PUT /api/epc/projects/:id/stage
-// Document: Order Created → Installation Pending → Net Metering → PCR Reports → Completed
+// ── UPDATE PROJECT STAGE ─────────────────────────────────────────────────────
 const updateProjectStage = async (req, res) => {
   try {
+    // Boss ke document ke mutabik strictly correct schema stages flow
     const stageSteps = [
-      'Order Created',
-      'Installation Pending',
-      'Net Metering',
-      'PCR Reports',
-      'Completed',
+      'Registration Started',
+      'Material Delivered',
+      'Installation In Progress',
+      'Installation Completed',
+      'QC Verification',
+      '90% Payment Released',
+      'Customer Approval',
+      '10% Payment Released',
+      'Project Closed'
     ];
 
     const project = await EpcOrder.findOne({
@@ -102,9 +108,12 @@ const updateProjectStage = async (req, res) => {
 
     project.stage = stage;
 
-    // Status bhi update karo
-    if (stage === 'Installation Pending') project.status = 'Ongoing';
-    if (stage === 'Completed') {
+    // FIX: Schema values ke hisab se status auto-update
+    if (stage === 'Material Delivered' || stage === 'Installation In Progress') {
+      project.status = 'Ongoing';
+    }
+    
+    if (stage === 'Project Closed') {
       project.status             = 'Completed';
       project.installCompletedAt = new Date();
     }
@@ -117,8 +126,8 @@ const updateProjectStage = async (req, res) => {
   }
 };
 
-// POST /api/epc/projects/:id/upload-docs
-// Step 4 — MNRE / registration documents upload
+// ── POST: UPLOAD PROJECT DOCS ────────────────────────────────────────────────
+// Step 4 — MNRE / registration documents upload (Registration Started stage)
 const uploadProjectDocs = async (req, res) => {
   try {
     const project = await EpcOrder.findOne({
@@ -128,17 +137,21 @@ const uploadProjectDocs = async (req, res) => {
 
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
+    // Multer validation
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: 'No files uploaded' });
     }
 
+    // FIX: Windows/Linux paths ko safe URLs me badla aur checklist trigger kiya
     const newDocs = req.files.map(f => ({
       docName:    f.originalname,
-      fileUrl:    f.path,
+      fileUrl:    `/${f.path.replace(/\\/g, '/')}`, 
       uploadedAt: new Date(),
     }));
 
     project.registrationDocs.push(...newDocs);
+    project.completionChecklist.mnreDocsUploaded = true; // Schema checklist sync
+    
     await project.save();
 
     res.json({ message: 'Documents uploaded', registrationDocs: project.registrationDocs });
@@ -148,8 +161,8 @@ const uploadProjectDocs = async (req, res) => {
   }
 };
 
-// POST /api/epc/projects/:id/upload-installation
-// Step 6 — Installation photos + net metering document
+// ── POST: UPLOAD INSTALLATION PHOTOS ─────────────────────────────────────────
+// Step 6 — Installation photos + net metering document (Installation Completed stage)
 const uploadInstallationPhotos = async (req, res) => {
   try {
     const project = await EpcOrder.findOne({
@@ -159,33 +172,38 @@ const uploadInstallationPhotos = async (req, res) => {
 
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
+    // Multer multi-field checking aur normalisation
     if (req.files?.photos) {
       const photos = req.files.photos.map((f, i) => ({
-        caption:    req.body.captions?.[i] || '',
-        fileUrl:    f.path,
+        caption:    req.body.captions ? (Array.isArray(req.body.captions) ? req.body.captions[i] : req.body.captions) : '',
+        fileUrl:    `/${f.path.replace(/\\/g, '/')}`,
         uploadedAt: new Date(),
       }));
       project.installationPhotos.push(...photos);
+      project.completionChecklist.installPhotosUploaded = true;
+      project.completionChecklist.gpsPhotosUploaded     = true; 
     }
 
     if (req.files?.netMetering) {
-      project.netMeteringDoc = req.files.netMetering[0].path;
+      project.netMeteringDoc = `/${req.files.netMetering[0].path.replace(/\\/g, '/')}`;
+      project.completionChecklist.netMeteringDone = true;
     }
 
-    if (project.stage === 'Installation Pending') {
-      project.stage = 'Net Metering';
+    // FIX: Schema stage ke mutabik flow upgrade kiya
+    if (project.stage === 'Installation In Progress') {
+      project.stage = 'Installation Completed';
     }
 
     await project.save();
-    res.json({ message: 'Installation docs uploaded', project });
+    res.json({ message: 'Installation docs uploaded successfully', project });
   } catch (err) {
     console.error('Upload installation error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
 
-// POST /api/epc/projects/:id/upload-pcr
-// Step 7 — PCR (Project Completion Report) upload
+// ── POST: UPLOAD PCR REPORT ──────────────────────────────────────────────────
+// Step 7 — PCR (Project Completion Report) upload (QC Verification stage)
 const uploadPcrReport = async (req, res) => {
   try {
     const project = await EpcOrder.findOne({
@@ -194,14 +212,18 @@ const uploadPcrReport = async (req, res) => {
     });
 
     if (!project) return res.status(404).json({ message: 'Project not found' });
+    
+    // Single file multer validation
     if (!req.file) return res.status(400).json({ message: 'No PCR file uploaded' });
 
-    project.pcrReport     = req.file.path;
+    // FIX: Normalised path, stage strictly updated to 'QC Verification' as per schema
+    project.pcrReport     = `/${req.file.path.replace(/\\/g, '/')}`;
     project.pcrUploadedAt = new Date();
-    project.stage         = 'PCR Reports';
+    project.stage         = 'QC Verification'; 
+    project.completionChecklist.pcrGenerated = true;
 
     await project.save();
-    res.json({ message: 'PCR report uploaded', project });
+    res.json({ message: 'PCR report uploaded successfully', project });
   } catch (err) {
     console.error('Upload PCR error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });

@@ -1,8 +1,19 @@
 const EpcOrder = require('../models/EpcOrder');
 
-const stageSteps = ['Order Created', 'Installation Pending', 'Net Metering', 'PCR Reports', 'Completed'];
+// New stage flow — boss ke document ke hisaab se
+const stageSteps = [
+  'Registration Started',
+  'Material Delivered',
+  'Installation In Progress',
+  'Installation Completed',
+  'QC Verification',
+  '90% Payment Released',
+  'Customer Approval',
+  '10% Payment Released',
+  'Project Closed',
+];
 
-// GET /api/epc/orders/summary  ← must be before /:id route
+// GET /api/epc/orders/summary
 const getOrderSummary = async (req, res) => {
   try {
     const epcId = req.epc._id;
@@ -20,7 +31,6 @@ const getOrderSummary = async (req, res) => {
 };
 
 // GET /api/epc/orders
-// Document: New, Ongoing, Overdue - order status as set by admin
 const getMyOrders = async (req, res) => {
   try {
     const { status, stage, projectType, district } = req.query;
@@ -57,7 +67,6 @@ const getOrderById = async (req, res) => {
 };
 
 // PUT /api/epc/orders/:id/stage
-// Document: Order Created → Installation Pending → Net Metering → PCR Reports → Completed
 const updateOrderStage = async (req, res) => {
   try {
     const order = await EpcOrder.findOne({ _id: req.params.id, epcPartner: req.epc._id });
@@ -65,7 +74,7 @@ const updateOrderStage = async (req, res) => {
 
     const { stage } = req.body;
     if (!stageSteps.includes(stage))
-      return res.status(400).json({ message: 'Invalid stage' });
+      return res.status(400).json({ message: `Invalid stage. Valid stages: ${stageSteps.join(', ')}` });
 
     const currentIdx = stageSteps.indexOf(order.stage);
     const newIdx     = stageSteps.indexOf(stage);
@@ -73,10 +82,14 @@ const updateOrderStage = async (req, res) => {
       return res.status(400).json({ message: 'Cannot go back to a previous stage' });
 
     order.stage = stage;
-    if (stage === 'Installation Pending') order.status = 'Ongoing';
-    if (stage === 'Completed') {
+
+    // Status auto-update
+    if (stage === 'Installation In Progress') order.status = 'Ongoing';
+    if (stage === 'Installation Completed')   order.installCompletedAt = new Date();
+    if (stage === 'Project Closed') {
       order.status             = 'Completed';
-      order.installCompletedAt = new Date();
+      order.warrantyActivated  = true;
+      order.warrantyActivatedAt = new Date();
     }
 
     await order.save();
@@ -86,7 +99,7 @@ const updateOrderStage = async (req, res) => {
   }
 };
 
-// POST /api/epc/orders/:id/upload-docs  (Step 4 - MNRE/registration)
+// POST /api/epc/orders/:id/upload-docs (MNRE / registration docs)
 const uploadRegistrationDocs = async (req, res) => {
   try {
     const order = await EpcOrder.findOne({ _id: req.params.id, epcPartner: req.epc._id });
@@ -95,19 +108,21 @@ const uploadRegistrationDocs = async (req, res) => {
       return res.status(400).json({ message: 'No files uploaded' });
 
     const newDocs = req.files.map(f => ({
-      docName: f.originalname,
-      fileUrl: f.path,
+      docName:    f.originalname,
+      fileUrl:    `/uploads/${f.filename}`,
       uploadedAt: new Date(),
     }));
     order.registrationDocs.push(...newDocs);
+    order.completionChecklist.mnreDocsUploaded = true;
     await order.save();
-    res.json({ message: 'Documents uploaded', registrationDocs: order.registrationDocs });
+
+    res.json({ message: 'Documents uploaded successfully', registrationDocs: order.registrationDocs });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
 
-// POST /api/epc/orders/:id/upload-install  (Step 6 - installation photos + net metering)
+// POST /api/epc/orders/:id/upload-install (installation photos + net metering)
 const uploadInstallationDocs = async (req, res) => {
   try {
     const order = await EpcOrder.findOne({ _id: req.params.id, epcPartner: req.epc._id });
@@ -115,16 +130,18 @@ const uploadInstallationDocs = async (req, res) => {
 
     if (req.files?.photos) {
       const photos = req.files.photos.map((f, i) => ({
-        caption: req.body.captions?.[i] || '',
-        fileUrl: f.path,
+        caption:    req.body.captions?.[i] || '',
+        fileUrl:    `/uploads/${f.filename}`,
         uploadedAt: new Date(),
       }));
       order.installationPhotos.push(...photos);
+      order.completionChecklist.installPhotosUploaded = true;
     }
+
     if (req.files?.netMetering) {
-      order.netMeteringDoc = req.files.netMetering[0].path;
+      order.netMeteringDoc = `/uploads/${req.files.netMetering[0].filename}`;
+      order.completionChecklist.netMeteringDone = true;
     }
-    if (order.stage === 'Installation Pending') order.stage = 'Net Metering';
 
     await order.save();
     res.json({ message: 'Installation docs uploaded', order });
@@ -133,16 +150,16 @@ const uploadInstallationDocs = async (req, res) => {
   }
 };
 
-// POST /api/epc/orders/:id/upload-pcr  (Step 7 - PCR report)
+// POST /api/epc/orders/:id/upload-pcr
 const uploadPcr = async (req, res) => {
   try {
     const order = await EpcOrder.findOne({ _id: req.params.id, epcPartner: req.epc._id });
     if (!order) return res.status(404).json({ message: 'Order not found' });
     if (!req.file) return res.status(400).json({ message: 'No PCR file uploaded' });
 
-    order.pcrReport     = req.file.path;
+    order.pcrReport     = `/uploads/${req.file.filename}`;
     order.pcrUploadedAt = new Date();
-    order.stage         = 'PCR Reports';
+    order.completionChecklist.pcrGenerated = true;
 
     await order.save();
     res.json({ message: 'PCR report uploaded', order });

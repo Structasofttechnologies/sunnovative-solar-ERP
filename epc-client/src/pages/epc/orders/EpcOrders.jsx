@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useEpcAuth } from '../../../context/EpcAuthContext';
 import epcApi from '../../../api/epcApi';
 
@@ -30,6 +30,7 @@ const stageSteps = [
 
 const EpcOrders = () => {
   const { epc } = useEpcAuth();
+  const navigate = useNavigate(); // Navigation ke liye hook
   const [searchParams] = useSearchParams();
   const defaultStatus = searchParams.get('status') || '';
 
@@ -70,7 +71,7 @@ const EpcOrders = () => {
 
   const advanceStage = async (orderId, currentStage) => {
     const idx = stageSteps.indexOf(currentStage);
-    if (idx >= stageSteps.length - 1) return;
+    if (idx === -1 || idx >= stageSteps.length - 1) return;
     const nextStage = stageSteps[idx + 1];
     if (!window.confirm(`Move order to "${nextStage}"?`)) return;
     setStageLoading(true);
@@ -124,7 +125,7 @@ const EpcOrders = () => {
         <div className="bg-blue-50 border border-blue-200 text-blue-700 text-sm rounded-lg px-4 py-3">{msg}</div>
       )}
 
-      {/* ── Status tabs ── */}
+      {/* Status tabs */}
       <div className="flex gap-2 flex-wrap">
         {statusTabs.map(t => (
           <button key={t.key} onClick={() => setFilterStatus(t.key)}
@@ -138,10 +139,9 @@ const EpcOrders = () => {
         ))}
       </div>
 
-      {/* ── Filters — Project Type + District (boss ke hisaab se) ── */}
+      {/* Filters */}
       <div className="bg-white border border-gray-200 rounded-xl p-4">
         <div className="flex items-end gap-3 flex-wrap">
-          {/* Project Type */}
           <div>
             <label className="block text-gray-500 text-xs mb-1">Project Type</label>
             <select value={filterProject} onChange={e => setFilterProject(e.target.value)}
@@ -151,7 +151,6 @@ const EpcOrders = () => {
             </select>
           </div>
 
-          {/* District */}
           <div>
             <label className="block text-gray-500 text-xs mb-1">District</label>
             <select value={filterDistrict} onChange={e => setFilterDistrict(e.target.value)}
@@ -176,7 +175,7 @@ const EpcOrders = () => {
         </div>
       </div>
 
-      {/* ── Orders list ── */}
+      {/* Orders list */}
       {loading ? (
         <div className="text-center py-12 text-gray-400">Loading orders...</div>
       ) : orders.length === 0 ? (
@@ -257,7 +256,7 @@ const EpcOrders = () => {
                 </div>
               </div>
 
-              {/* Expanded detail */}
+              {/* Expanded detail (Dropdown Panel) */}
               {selected?._id === order._id && (
                 <div className="border-t border-gray-100 p-5 space-y-4 bg-gray-50">
                   {/* Payment */}
@@ -300,14 +299,25 @@ const EpcOrders = () => {
                     )}
                   </div>
 
-                  {/* Advance stage */}
-                  {order.stage !== 'Project Closed' && (
-                    <button onClick={() => advanceStage(order._id, order.stage)}
-                      disabled={stageLoading}
-                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-medium py-2.5 rounded-lg transition-colors">
-                      {stageLoading ? 'Updating...' : `→ Move to: ${stageSteps[stageSteps.indexOf(order.stage) + 1]}`}
+                  {/* Operational Action Buttons Wrapper */}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {/* Naya View Full Details Button */}
+                    <button
+                      onClick={() => navigate(`/epc/orders/${order._id}`)}
+                      className="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs font-semibold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1"
+                    >
+                      View Full Order Details →
                     </button>
-                  )}
+
+                    {/* Advance stage button */}
+                    {order.stage !== 'Project Closed' && (
+                      <button onClick={() => advanceStage(order._id, order.stage)}
+                        disabled={stageLoading}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-medium py-2.5 rounded-lg transition-colors">
+                        {stageLoading ? 'Updating...' : `→ Move to: ${stageSteps[stageSteps.indexOf(order.stage) + 1]}`}
+                      </button>
+                    )}
+                  </div>
 
                   {/* Customer rating */}
                   {order.customerRating && (

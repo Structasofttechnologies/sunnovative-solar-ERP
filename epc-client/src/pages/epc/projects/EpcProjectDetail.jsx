@@ -1,15 +1,33 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import epcApi from '../../../api/epcApi';
+// 🔥 TOAST IMPORT KIYA
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const stageSteps = ['Order Created', 'Installation Pending', 'Net Metering', 'PCR Reports', 'Completed'];
+// Master 9-Step Flow Synced with Schema and Controller
+const stageSteps = [
+  'Registration Started',
+  'Material Delivered',
+  'Installation In Progress',
+  'Installation Completed',
+  'QC Verification',
+  '90% Payment Released',
+  'Customer Approval',
+  '10% Payment Released',
+  'Project Closed',
+];
 
 const stageColors = {
-  'Order Created':        'bg-blue-50 text-blue-600 border-blue-200',
-  'Installation Pending': 'bg-yellow-50 text-yellow-600 border-yellow-200',
-  'Net Metering':         'bg-orange-50 text-orange-600 border-orange-200',
-  'PCR Reports':          'bg-purple-50 text-purple-600 border-purple-200',
-  'Completed':            'bg-green-50 text-green-600 border-green-200',
+  'Registration Started':     'bg-blue-50 text-blue-600 border-blue-200',
+  'Material Delivered':       'bg-amber-50 text-amber-600 border-amber-200',
+  'Installation In Progress': 'bg-yellow-50 text-yellow-600 border-yellow-200',
+  'Installation Completed':   'bg-indigo-50 text-indigo-600 border-indigo-200',
+  'QC Verification':          'bg-purple-50 text-purple-600 border-purple-200',
+  '90% Payment Released':     'bg-teal-50 text-teal-600 border-teal-200',
+  'Customer Approval':        'bg-pink-50 text-pink-600 border-pink-200',
+  '10% Payment Released':     'bg-orange-50 text-orange-600 border-orange-200',
+  'Project Closed':           'bg-green-50 text-green-600 border-green-200',
 };
 
 const EpcProjectDetail = () => {
@@ -19,15 +37,15 @@ const EpcProjectDetail = () => {
   const [loading, setLoading]     = useState(true);
   const [stageLoading, setStageLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState('');
-  const [msg, setMsg]             = useState({ text: '', type: '' });
 
   const load = async () => {
     setLoading(true);
     try {
-      const { data } = await epcApi.get(`/api/epc/orders/${id}`);
+      const { data } = await epcApi.get(`/api/epc/projects/${id}`);
       setOrder(data);
     } catch (error) {
       console.error('Project detail fetch error:', error);
+      toast.error('Project details fetch karne me dikkat aayi!');
     } finally {
       setLoading(false);
     }
@@ -37,43 +55,93 @@ const EpcProjectDetail = () => {
 
   const advanceStage = async () => {
     const idx = stageSteps.indexOf(order.stage);
-    if (idx >= stageSteps.length - 1) return;
+    if (idx === -1 || idx >= stageSteps.length - 1) return;
     const nextStage = stageSteps[idx + 1];
     if (!window.confirm(`Move project to "${nextStage}"?`)) return;
     setStageLoading(true);
     try {
-      await epcApi.put(`/api/epc/orders/${id}/stage`, { stage: nextStage });
-      setMsg({ text: `Moved to: ${nextStage}`, type: 'success' });
+      await epcApi.put(`/api/epc/projects/${id}/stage`, { stage: nextStage });
+      // 🔥 STAGE CHANGE TOAST POPUP
+      toast.success(`🎉 Status successfully moved to: ${nextStage}`);
       load();
     } catch (err) {
-      setMsg({ text: err.response?.data?.message || 'Failed', type: 'error' });
+      toast.error(err.response?.data?.message || 'Failed to update stage');
     } finally {
       setStageLoading(false);
-      setTimeout(() => setMsg({ text: '', type: '' }), 3000);
     }
   };
 
   const handleFileUpload = async (type, files) => {
     if (!files || files.length === 0) return;
+
+    const MAX_SIZE = 25 * 1024 * 1024; // 25MB
+    const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    const allowedDocTypes   = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    const allowedPcrTypes   = [
+      'application/pdf', 
+      'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      // 🔥 EARLY ERRORS TOAST POPUPS
+      if (file.size > MAX_SIZE) {
+        toast.error(`⚠️ File "${file.name}" limit se bahar hai. Max size 25MB hai!`);
+        return; 
+      }
+
+      if (type === 'install' && !allowedImageTypes.includes(file.type)) {
+        toast.error('❌ Photos section me sirf Images (.jpg, .png) allowed hain.');
+        return;
+      }
+
+      if (type === 'docs' && !allowedDocTypes.includes(file.type)) {
+        toast.error('❌ Docs section me sirf PDFs ya Images bhein.');
+        return;
+      }
+
+      if (type === 'netmetering' && !allowedDocTypes.includes(file.type)) {
+        toast.error('❌ Net metering file ke liye PDF ya Image upload karein.');
+        return;
+      }
+
+      if (type === 'pcr' && !allowedPcrTypes.includes(file.type)) {
+        toast.error('❌ PCR report me sirf PDF ya Word File (.doc, .docx) chalegi.');
+        return;
+      }
+    }
+
     setUploadLoading(type);
     try {
       const formData = new FormData();
-      Array.from(files).forEach(f => formData.append(type === 'install' ? 'photos' : 'file', f));
+      
+      if (type === 'docs') {
+        Array.from(files).forEach(f => formData.append('files', f));
+      } else if (type === 'install') {
+        Array.from(files).forEach(f => formData.append('photos', f));
+      } else if (type === 'netmetering') {
+        formData.append('netMetering', files[0]);
+      } else if (type === 'pcr') {
+        formData.append('pcrReport', files[0]);
+      }
 
-      const endpoint = type === 'docs'    ? `/api/epc/orders/${id}/upload-docs`
-                     : type === 'install' ? `/api/epc/orders/${id}/upload-install`
-                     :                      `/api/epc/orders/${id}/upload-pcr`;
+      const endpoint = type === 'docs' ? `/api/epc/projects/${id}/upload-docs`
+                     : (type === 'install' || type === 'netmetering') ? `/api/epc/projects/${id}/upload-installation`
+                     : `/api/epc/projects/${id}/upload-pcr`;
 
       await epcApi.post(endpoint, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      setMsg({ text: 'Files uploaded successfully!', type: 'success' });
+      
+      // 🔥 SUCCESS TOAST POPUP
+      toast.success('🚀 File uploaded successfully!');
       load();
     } catch (err) {
-      setMsg({ text: err.response?.data?.message || 'Upload failed', type: 'error' });
+      toast.error(err.response?.data?.message || 'Server Upload failed');
     } finally {
       setUploadLoading('');
-      setTimeout(() => setMsg({ text: '', type: '' }), 3000);
     }
   };
 
@@ -99,10 +167,20 @@ const EpcProjectDetail = () => {
   }
 
   const currentStageIdx = stageSteps.indexOf(order.stage);
-  const progress = Math.round((currentStageIdx / (stageSteps.length - 1)) * 100);
+  const progress = currentStageIdx === -1 ? 0 : Math.round((currentStageIdx / (stageSteps.length - 1)) * 100);
+
+  const getFileUrl = (path) => {
+    if (!path) return '#';
+    if (path.startsWith('http')) return path;
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    return `${backendUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+  };
 
   return (
     <div className="space-y-5 max-w-4xl">
+      {/* 🔥 GLOBAL TOAST CONTAINER (Isi ki wajah se alert pops dikhenge screen par) */}
+      <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} theme="colored" />
+
       {/* Back + Header */}
       <div className="flex items-center gap-3">
         <button onClick={() => navigate('/epc/projects')}
@@ -127,14 +205,6 @@ const EpcProjectDetail = () => {
         </div>
       </div>
 
-      {msg.text && (
-        <div className={`text-sm rounded-lg px-4 py-3 border ${
-          msg.type === 'success'
-            ? 'bg-green-50 border-green-200 text-green-700'
-            : 'bg-red-50 border-red-200 text-red-700'
-        }`}>{msg.text}</div>
-      )}
-
       {/* Progress tracker */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between mb-3">
@@ -145,38 +215,41 @@ const EpcProjectDetail = () => {
           <div className="h-full bg-blue-500 rounded-full transition-all duration-500"
             style={{ width: `${progress}%` }} />
         </div>
-        <div className="grid grid-cols-5 gap-2">
+        
+        <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-3">
           {stageSteps.map((stage, i) => (
-            <div key={stage} className="text-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-1 text-xs font-bold border-2 ${
+            <div key={stage} className="text-center flex flex-col items-center">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center mb-1 text-xs font-bold border-2 ${
                 i < currentStageIdx  ? 'bg-blue-500 border-blue-500 text-white' :
                 i === currentStageIdx ? 'bg-blue-50 border-blue-500 text-blue-600' :
                 'bg-white border-gray-200 text-gray-400'
               }`}>
                 {i < currentStageIdx ? (
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 ) : i + 1}
               </div>
-              <p className={`text-xs leading-tight ${
-                i === currentStageIdx ? 'text-blue-600 font-medium' :
+              <p className={`text-[10px] tracking-tight leading-tight transition-colors hidden sm:block ${
+                i === currentStageIdx ? 'text-blue-600 font-semibold' :
                 i < currentStageIdx  ? 'text-gray-500' : 'text-gray-300'
               }`}>{stage}</p>
             </div>
           ))}
         </div>
 
-        {/* Advance stage button */}
-        {order.stage !== 'Completed' && (
-          <button onClick={advanceStage} disabled={stageLoading}
+        <p className="text-xs text-gray-500 font-medium mt-2 sm:hidden text-center">
+          Current State: <span className="text-blue-600 font-bold">{order.stage}</span>
+        </p>
+
+        {order.stage !== 'Project Closed' ? (
+          <button onClick={advanceStage} disabled={stageLoading || currentStageIdx === -1}
             className="mt-5 w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg transition-colors">
-            {stageLoading ? 'Updating...' : `→ Mark as: ${stageSteps[currentStageIdx + 1]}`}
+            {stageLoading ? 'Updating...' : `→ Mark as: ${stageSteps[currentStageIdx + 1] || 'Next Step'}`}
           </button>
-        )}
-        {order.stage === 'Completed' && (
+        ) : (
           <div className="mt-4 bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-center">
-            <p className="text-green-700 text-sm font-medium">✅ Project Completed!</p>
+            <p className="text-green-700 text-sm font-medium">✅ Project Closed & Completed!</p>
           </div>
         )}
       </div>
@@ -296,91 +369,122 @@ const EpcProjectDetail = () => {
           <svg className="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          Documents
+          Documents & Media Uploads
         </h3>
         <div className="grid sm:grid-cols-3 gap-4">
-          {/* MNRE / Registration Docs */}
-          <div className="border border-gray-200 rounded-lg p-4">
-            <p className="text-gray-700 text-xs font-semibold mb-1">MNRE / Registration Docs</p>
-            <p className="text-gray-400 text-xs mb-3">Step 4 — Upload required letters</p>
-            {order.registrationDocs?.length > 0 ? (
-              <div className="space-y-1 mb-3">
-                {order.registrationDocs.map((doc, i) => (
-                  <a key={i} href={doc.fileUrl} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-1.5 text-blue-600 text-xs hover:underline">
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                    </svg>
-                    {doc.docName || `Document ${i + 1}`}
-                  </a>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-300 text-xs mb-3">No docs uploaded</p>
-            )}
+          
+          {/* 1. MNRE / Registration Docs */}
+          <div className="border border-gray-200 rounded-lg p-4 flex flex-col justify-between">
+            <div>
+              <p className="text-gray-700 text-xs font-semibold mb-1">MNRE / Registration Docs</p>
+              <p className="text-gray-400 text-xs mb-3">Upload deployment letters</p>
+              {order.registrationDocs?.length > 0 ? (
+                <div className="space-y-1 mb-3">
+                  {order.registrationDocs.map((doc, i) => (
+                    <a key={i} href={getFileUrl(doc.fileUrl)} target="_blank" rel="noreferrer"
+                      className="flex items-center gap-1.5 text-blue-600 text-xs hover:underline truncate">
+                      <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                      </svg>
+                      {doc.docName || `Document ${i + 1}`}
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-300 text-xs mb-3">No docs uploaded</p>
+              )}
+            </div>
             <label className={`flex items-center justify-center gap-1.5 text-xs font-medium py-2 px-3 rounded-lg border cursor-pointer transition-colors ${
               uploadLoading === 'docs' ? 'opacity-50 cursor-not-allowed' : 'border-blue-200 text-blue-600 bg-blue-50 hover:bg-blue-100'
             }`}>
               {uploadLoading === 'docs' ? 'Uploading...' : '+ Upload Docs'}
               <input type="file" multiple className="hidden"
                 onChange={e => handleFileUpload('docs', e.target.files)}
-                disabled={uploadLoading === 'docs'} />
+                disabled={uploadLoading !== ''} />
             </label>
           </div>
 
-          {/* Installation Photos */}
-          <div className="border border-gray-200 rounded-lg p-4">
-            <p className="text-gray-700 text-xs font-semibold mb-1">Installation Photos</p>
-            <p className="text-gray-400 text-xs mb-3">Step 6 — Upload photos + net metering</p>
-            {order.installationPhotos?.length > 0 ? (
-              <p className="text-green-600 text-xs mb-3 font-medium">
-                ✓ {order.installationPhotos.length} photo(s) uploaded
-              </p>
-            ) : (
-              <p className="text-gray-300 text-xs mb-3">No photos uploaded</p>
-            )}
-            {order.netMeteringDoc && (
-              <p className="text-green-600 text-xs mb-2">✓ Net metering uploaded</p>
-            )}
-            <label className={`flex items-center justify-center gap-1.5 text-xs font-medium py-2 px-3 rounded-lg border cursor-pointer transition-colors ${
-              uploadLoading === 'install' ? 'opacity-50 cursor-not-allowed' : 'border-green-200 text-green-600 bg-green-50 hover:bg-green-100'
-            }`}>
-              {uploadLoading === 'install' ? 'Uploading...' : '+ Upload Photos'}
-              <input type="file" multiple accept="image/*" className="hidden"
-                onChange={e => handleFileUpload('install', e.target.files)}
-                disabled={uploadLoading === 'install'} />
-            </label>
-          </div>
+          {/* 2. Installation Photos & Net Metering Split */}
+          <div className="border border-gray-200 rounded-lg p-4 flex flex-col justify-between">
+            <div>
+              <p className="text-gray-700 text-xs font-semibold mb-1">Site Media & Metering</p>
+              <p className="text-gray-400 text-xs mb-3">Upload structural images</p>
+              
+              <div className="space-y-1.5 mb-3">
+                {order.installationPhotos?.length > 0 ? (
+                  <p className="text-green-600 text-xs font-medium flex items-center gap-1">
+                    ✓ {order.installationPhotos.length} Site photo(s) saved
+                  </p>
+                ) : (
+                  <p className="text-gray-300 text-xs">No photos uploaded</p>
+                )}
 
-          {/* PCR Report */}
-          <div className="border border-gray-200 rounded-lg p-4">
-            <p className="text-gray-700 text-xs font-semibold mb-1">PCR Report</p>
-            <p className="text-gray-400 text-xs mb-3">Step 7 — Project Completion Report</p>
-            {order.pcrReport ? (
-              <div className="mb-3">
-                <a href={order.pcrReport} target="_blank" rel="noreferrer"
-                  className="text-blue-600 text-xs hover:underline flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                  </svg>
-                  View PCR Report
-                </a>
-                <p className="text-gray-400 text-xs mt-0.5">
-                  Uploaded: {new Date(order.pcrUploadedAt).toLocaleDateString('en-IN')}
-                </p>
+                {order.netMeteringDoc ? (
+                  <a href={getFileUrl(order.netMeteringDoc)} target="_blank" rel="noreferrer"
+                    className="text-green-600 text-xs hover:underline flex items-center gap-1 font-medium">
+                    ✓ Net Metering Doc Uploaded
+                  </a>
+                ) : (
+                  <p className="text-gray-300 text-xs">No Net Metering doc</p>
+                )}
               </div>
-            ) : (
-              <p className="text-gray-300 text-xs mb-3">No PCR uploaded</p>
-            )}
+            </div>
+
+            <div className="space-y-2">
+              <label className={`flex items-center justify-center gap-1.5 text-xs font-medium py-1.5 px-3 rounded-lg border cursor-pointer transition-colors ${
+                uploadLoading === 'install' ? 'opacity-50 cursor-not-allowed' : 'border-green-200 text-green-600 bg-green-50 hover:bg-green-100'
+              }`}>
+                {uploadLoading === 'install' ? 'Uploading...' : '+ Photos'}
+                <input type="file" multiple accept="image/*" className="hidden"
+                  onChange={e => handleFileUpload('install', e.target.files)}
+                  disabled={uploadLoading !== ''} />
+              </label>
+
+              <label className={`flex items-center justify-center gap-1.5 text-xs font-medium py-1.5 px-3 rounded-lg border cursor-pointer transition-colors ${
+                uploadLoading === 'netmetering' ? 'opacity-50 cursor-not-allowed' : 'border-teal-200 text-teal-600 bg-teal-50 hover:bg-teal-100'
+              }`}>
+                {uploadLoading === 'netmetering' ? 'Uploading...' : '+ Metering Doc'}
+                <input type="file" accept="application/pdf,image/*" className="hidden"
+                  onChange={e => handleFileUpload('netmetering', e.target.files)}
+                  disabled={uploadLoading !== ''} />
+              </label>
+            </div>
+          </div>
+
+          {/* 3. PCR Report */}
+          <div className="border border-gray-200 rounded-lg p-4 flex flex-col justify-between">
+            <div>
+              <p className="text-gray-700 text-xs font-semibold mb-1">PCR Report</p>
+              <p className="text-gray-400 text-xs mb-3">Audit Completion Assessment</p>
+              {order.pcrReport ? (
+                <div className="mb-3">
+                  <a href={getFileUrl(order.pcrReport)} target="_blank" rel="noreferrer"
+                    className="text-blue-600 text-xs hover:underline flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                    View PCR Report
+                  </a>
+                  {order.pcrUploadedAt && (
+                    <p className="text-gray-400 text-xs mt-0.5">
+                      Uploaded: {new Date(order.pcrUploadedAt).toLocaleDateString('en-IN')}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-300 text-xs mb-3">No PCR uploaded</p>
+              )}
+            </div>
             <label className={`flex items-center justify-center gap-1.5 text-xs font-medium py-2 px-3 rounded-lg border cursor-pointer transition-colors ${
               uploadLoading === 'pcr' ? 'opacity-50 cursor-not-allowed' : 'border-purple-200 text-purple-600 bg-purple-50 hover:bg-purple-100'
             }`}>
               {uploadLoading === 'pcr' ? 'Uploading...' : '+ Upload PCR'}
               <input type="file" accept=".pdf,.doc,.docx" className="hidden"
                 onChange={e => handleFileUpload('pcr', e.target.files)}
-                disabled={uploadLoading === 'pcr'} />
+                disabled={uploadLoading !== ''} />
             </label>
           </div>
+
         </div>
       </div>
 
